@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -6,7 +7,7 @@
 #include <wallet_backend/json_serialization.h>
 ////////////////////////////////////////////
 
-#include <common/StringTools.h>
+#include <common/string_tools.h>
 
 #include <tuple>
 
@@ -19,10 +20,10 @@
 
 using nlohmann::json;
 
-namespace WalletTypes
+namespace wallet_types
 {
     //////////////////////////////
-    /* WalletTypes::Transaction */
+    /* wallet_types::Transaction */
     //////////////////////////////
 
     void to_json(json &j, const Transaction &t)
@@ -42,7 +43,7 @@ namespace WalletTypes
     void from_json(const json &j, Transaction &t)
     {
         t.transfers = vectorToTransfers(j.at("transfers").get<std::vector<Transfer>>());
-        t.hash = j.at("hash").get<Crypto::Hash>();
+        t.hash = j.at("hash").get<crypto::Hash>();
         t.fee = j.at("fee").get<uint64_t>();
         t.blockHeight = j.at("blockHeight").get<uint64_t>();
         t.timestamp = j.at("timestamp").get<uint64_t>();
@@ -66,7 +67,7 @@ void to_json(json &j, const Transfer &t)
 
 void from_json(const json &j, Transfer &t)
 {
-    t.publicKey = j.at("publicKey").get<Crypto::PublicKey>();
+    t.publicKey = j.at("publicKey").get<crypto::PublicKey>();
     t.amount = j.at("amount").get<int64_t>();
 }
 
@@ -79,8 +80,8 @@ void to_json(json &j, const TxPrivateKey &t)
 
 void from_json(const json &j, TxPrivateKey &t)
 {
-    t.txHash = j.at("transactionHash").get<Crypto::Hash>();
-    t.txPrivateKey = j.at("txPrivateKey").get<Crypto::SecretKey>();
+    t.txHash = j.at("transactionHash").get<crypto::Hash>();
+    t.txPrivateKey = j.at("txPrivateKey").get<crypto::SecretKey>();
 }
 
 /* std::map / std::unordered_map don't work great in json - they get serialized
@@ -103,7 +104,7 @@ make it easier for people using the wallet file in different languages to
 use */
 
 std::vector<Transfer> transfersToVector(
-    const std::unordered_map<Crypto::PublicKey, int64_t> transfers)
+    const std::unordered_map<crypto::PublicKey, int64_t> transfers)
 {
     std::vector<Transfer> vector;
 
@@ -119,10 +120,10 @@ std::vector<Transfer> transfersToVector(
     return vector;
 }
 
-std::unordered_map<Crypto::PublicKey, int64_t> vectorToTransfers(
+std::unordered_map<crypto::PublicKey, int64_t> vectorToTransfers(
     const std::vector<Transfer> vector)
 {
-    std::unordered_map<Crypto::PublicKey, int64_t> transfers;
+    std::unordered_map<crypto::PublicKey, int64_t> transfers;
 
     for (const auto &transfer : vector)
     {
@@ -133,7 +134,7 @@ std::unordered_map<Crypto::PublicKey, int64_t> vectorToTransfers(
 }
 
 std::vector<TxPrivateKey> txPrivateKeysToVector(
-    const std::unordered_map<Crypto::Hash, Crypto::SecretKey> txPrivateKeys)
+    const std::unordered_map<crypto::Hash, crypto::SecretKey> txPrivateKeys)
 {
     std::vector<TxPrivateKey> vector;
 
@@ -145,10 +146,10 @@ std::vector<TxPrivateKey> txPrivateKeysToVector(
     return vector;
 }
 
-std::unordered_map<Crypto::Hash, Crypto::SecretKey> vectorToTxPrivateKeys(
+std::unordered_map<crypto::Hash, crypto::SecretKey> vectorToTxPrivateKeys(
     const std::vector<TxPrivateKey> vector)
 {
-    std::unordered_map<Crypto::Hash, Crypto::SecretKey> txPrivateKeys;
+    std::unordered_map<crypto::Hash, crypto::SecretKey> txPrivateKeys;
 
     for (const auto t : vector)
     {

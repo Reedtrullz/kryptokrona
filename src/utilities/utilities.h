@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,7 +9,7 @@
 
 #include <chrono>
 
-#include <CryptoNote.h>
+#include <cryptonote.h>
 
 #include <iomanip>
 
@@ -18,7 +19,7 @@
 
 #include <errors/errors.h>
 
-namespace Utilities
+namespace utilities
 {
     uint64_t getTransactionSum(const std::vector<std::pair<std::string, uint64_t>> destinations);
 

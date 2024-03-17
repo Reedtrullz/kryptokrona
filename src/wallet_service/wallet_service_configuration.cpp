@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 #include "wallet_service_configuration.h"
@@ -13,12 +14,12 @@
 
 using nlohmann::json;
 
-namespace PaymentService
+namespace payment_service
 {
 
     void handleSettings(int argc, char *argv[], WalletServiceConfiguration &config)
     {
-        cxxopts::Options options(argv[0], CryptoNote::getProjectCLIHeader());
+        cxxopts::Options options(argv[0], cryptonote::getProjectCLIHeader());
 
         options.add_options("Core")("h,help", "Display this help message", cxxopts::value<bool>()->implicit_value("true"))("v,version", "Output software version information", cxxopts::value<bool>()->default_value("false")->implicit_value("true"));
 
@@ -189,7 +190,7 @@ namespace PaymentService
             }
             else if (config.version) // Do we want to display the software version?
             {
-                std::cout << CryptoNote::getProjectCLIHeader() << std::endl;
+                std::cout << cryptonote::getProjectCLIHeader() << std::endl;
                 exit(0);
             }
         }

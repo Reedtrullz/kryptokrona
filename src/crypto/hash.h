@@ -1,7 +1,8 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2014-2018, The Aeon Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -9,7 +10,7 @@
 
 #include <stddef.h>
 
-#include <CryptoTypes.h>
+#include <crypto_types.h>
 
 // Standard Cryptonight Definitions
 #define CN_PAGE_SIZE 2097152
@@ -44,7 +45,7 @@
 #error The CryptoNight Soft Shell Parameters you supplied will exceed normal paging operations.
 #endif
 
-namespace Crypto
+namespace crypto
 {
 
     extern "C"

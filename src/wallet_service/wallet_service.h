@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -9,9 +10,9 @@
 #include <syst/context_group.h>
 #include <syst/dispatcher.h>
 #include <syst/event.h>
-#include "IWallet.h"
-#include "INode.h"
-#include "CryptoNoteCore/Currency.h"
+#include "iwallet.h"
+#include "inode.h"
+#include "cryptonote_core/currency.h"
 #include "payment_service_json_rpc_messages.h"
 #undef ERROR // TODO: workaround for windows build. fix it
 #include "logging/logger_ref.h"
@@ -22,12 +23,12 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 
-namespace CryptoNote
+namespace cryptonote
 {
     class IFusionManager;
 }
 
-namespace PaymentService
+namespace payment_service
 {
 
     struct WalletConfiguration
@@ -41,15 +42,15 @@ namespace PaymentService
         uint64_t scanHeight;
     };
 
-    void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfiguration &conf, std::shared_ptr<Logging::ILogger> logger, System::Dispatcher &dispatcher);
+    void generateNewWallet(const cryptonote::Currency &currency, const WalletConfiguration &conf, std::shared_ptr<logging::ILogger> logger, syst::Dispatcher &dispatcher);
 
     struct TransactionsInBlockInfoFilter;
 
     class WalletService
     {
     public:
-        WalletService(const CryptoNote::Currency &currency, System::Dispatcher &sys, CryptoNote::INode &node, CryptoNote::IWallet &wallet,
-                      CryptoNote::IFusionManager &fusionManager, const WalletConfiguration &conf, std::shared_ptr<Logging::ILogger> logger);
+        WalletService(const cryptonote::Currency &currency, syst::Dispatcher &sys, cryptonote::INode &node, cryptonote::IWallet &wallet,
+                      cryptonote::IFusionManager &fusionManager, const WalletConfiguration &conf, std::shared_ptr<logging::ILogger> logger);
         virtual ~WalletService();
 
         void init();
@@ -101,29 +102,29 @@ namespace PaymentService
         void loadTransactionIdIndex();
         void getNodeFee();
 
-        std::vector<CryptoNote::TransactionsInBlockInfo> getTransactions(const Crypto::Hash &blockHash, size_t blockCount) const;
-        std::vector<CryptoNote::TransactionsInBlockInfo> getTransactions(uint32_t firstBlockIndex, size_t blockCount) const;
+        std::vector<cryptonote::TransactionsInBlockInfo> getTransactions(const crypto::Hash &blockHash, size_t blockCount) const;
+        std::vector<cryptonote::TransactionsInBlockInfo> getTransactions(uint32_t firstBlockIndex, size_t blockCount) const;
 
-        std::vector<TransactionHashesInBlockRpcInfo> getRpcTransactionHashes(const Crypto::Hash &blockHash, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
+        std::vector<TransactionHashesInBlockRpcInfo> getRpcTransactionHashes(const crypto::Hash &blockHash, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
         std::vector<TransactionHashesInBlockRpcInfo> getRpcTransactionHashes(uint32_t firstBlockIndex, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
 
-        std::vector<TransactionsInBlockRpcInfo> getRpcTransactions(const Crypto::Hash &blockHash, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
+        std::vector<TransactionsInBlockRpcInfo> getRpcTransactions(const crypto::Hash &blockHash, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
         std::vector<TransactionsInBlockRpcInfo> getRpcTransactions(uint32_t firstBlockIndex, size_t blockCount, const TransactionsInBlockInfoFilter &filter) const;
 
-        const CryptoNote::Currency &currency;
-        CryptoNote::IWallet &wallet;
-        CryptoNote::IFusionManager &fusionManager;
-        CryptoNote::INode &node;
+        const cryptonote::Currency &currency;
+        cryptonote::IWallet &wallet;
+        cryptonote::IFusionManager &fusionManager;
+        cryptonote::INode &node;
         const WalletConfiguration &config;
         bool inited;
-        Logging::LoggerRef logger;
-        System::Dispatcher &dispatcher;
-        System::Event readyEvent;
-        System::ContextGroup refreshContext;
+        logging::LoggerRef logger;
+        syst::Dispatcher &dispatcher;
+        syst::Event readyEvent;
+        syst::ContextGroup refreshContext;
         std::string m_node_address;
         uint32_t m_node_fee;
 
         std::map<std::string, size_t> transactionIdIndex;
     };
 
-} // namespace PaymentService
+} // namespace payment_service

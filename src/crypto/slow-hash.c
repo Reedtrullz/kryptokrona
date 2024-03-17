@@ -1,7 +1,8 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2014-2018, The Aeon Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -11,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "common/int-util.h"
+#include "common/int_util.h"
 #include "hash-ops.h"
 #include "oaes_lib.h"
 #include "variant2_int_sqrt.h"
@@ -241,7 +242,7 @@ extern int aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *exp
 #endif
 #else
 #include <wmmintrin.h>
-#include <syst/mman.h>
+#include <sys/mman.h>
 #define STATIC static
 #define INLINE inline
 #if !defined(RDATA_ALIGN16)

@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -6,15 +7,15 @@
 #include <errors/validate_parameters.h>
 //////////////////////////////////////
 
-#include <common/Base58.h>
+#include <common/base58.h>
 
 #include <config/cryptonote_config.h>
 #include <config/wallet_config.h>
 
-#include <CryptoNoteCore/CryptoNoteBasicImpl.h>
-#include <CryptoNoteCore/CryptoNoteTools.h>
-#include <CryptoNoteCore/Mixins.h>
-#include <CryptoNoteCore/TransactionExtra.h>
+#include <cryptonote_core/cryptonote_basic_impl.h>
+#include <cryptonote_core/cryptonote_tools.h>
+#include <cryptonote_core/mixins.h>
+#include <cryptonote_core/transaction_extra.h>
 
 #include <regex>
 
@@ -114,13 +115,13 @@ Error validateIntegratedAddresses(
 {
     for (const auto [address, amount] : destinations)
     {
-        if (address.length() != WalletConfig::integratedAddressLength)
+        if (address.length() != wallet_config::integratedAddressLength)
         {
             continue;
         }
 
         /* Grab the address + pid from the integrated address */
-        const auto [extractedAddress, extractedPaymentID] = Utilities::extractIntegratedAddressData(address);
+        const auto [extractedAddress, extractedPaymentID] = utilities::extractIntegratedAddressData(address);
 
         /* No payment ID given, set it to the extracted one */
         if (paymentID == "")
@@ -177,7 +178,7 @@ Error validatePaymentID(const std::string paymentID)
 
 Error validateMixin(const uint64_t mixin, const uint64_t height)
 {
-    const auto [minMixin, maxMixin, defaultMixin] = CryptoNote::Mixins::getMixinAllowableRange(height);
+    const auto [minMixin, maxMixin, defaultMixin] = cryptonote::Mixins::getMixinAllowableRange(height);
 
     if (mixin < minMixin)
     {
@@ -208,20 +209,20 @@ Error validateAmount(
     const uint64_t currentHeight)
 {
     /* Verify the fee is valid */
-    if (fee < CryptoNote::parameters::MINIMUM_FEE)
+    if (fee < cryptonote::parameters::MINIMUM_FEE)
     {
         return FEE_TOO_SMALL;
     }
 
     /* Get the available balance, using the source addresses */
     const auto [availableBalance, lockedBalance] = subWallets->getBalance(
-        Utilities::addressesToSpendKeys(subWalletsToTakeFrom),
+        utilities::addressesToSpendKeys(subWalletsToTakeFrom),
         /* Take from all if no subwallets specified */
         subWalletsToTakeFrom.empty(),
         currentHeight);
 
     /* Get the total amount of the transaction */
-    uint64_t totalAmount = Utilities::getTransactionSum(destinations) + fee;
+    uint64_t totalAmount = utilities::getTransactionSum(destinations) + fee;
 
     std::vector<uint64_t> amounts{fee};
 
@@ -232,7 +233,7 @@ Error validateAmount(
                    });
 
     /* Check the total amount we're sending is not >= uint64_t */
-    if (Utilities::sumWillOverflow(amounts))
+    if (utilities::sumWillOverflow(amounts))
     {
         return WILL_OVERFLOW;
     }
@@ -283,27 +284,27 @@ Error validateAddresses(
     for (auto &address : addresses)
     {
         /* Address is the wrong length */
-        if (address.length() != WalletConfig::standardAddressLength &&
-            address.length() != WalletConfig::integratedAddressLength)
+        if (address.length() != wallet_config::standardAddressLength &&
+            address.length() != wallet_config::integratedAddressLength)
         {
             std::stringstream stream;
 
             stream << "The address given is the wrong length. It should be "
-                   << WalletConfig::standardAddressLength << " chars or "
-                   << WalletConfig::integratedAddressLength << " chars, but "
+                   << wallet_config::standardAddressLength << " chars or "
+                   << wallet_config::integratedAddressLength << " chars, but "
                    << "it is " << address.length() << " chars.";
 
             return Error(ADDRESS_WRONG_LENGTH, stream.str());
         }
 
         /* Address has the wrong prefix */
-        if (address.substr(0, WalletConfig::addressPrefix.length()) !=
-            WalletConfig::addressPrefix)
+        if (address.substr(0, wallet_config::addressPrefix.length()) !=
+            wallet_config::addressPrefix)
         {
             return ADDRESS_WRONG_PREFIX;
         }
 
-        if (address.length() == WalletConfig::integratedAddressLength)
+        if (address.length() == wallet_config::integratedAddressLength)
         {
             if (!integratedAddressesAllowed)
             {
@@ -319,7 +320,7 @@ Error validateAddresses(
             /* Don't need this */
             uint64_t ignore;
 
-            if (!Tools::Base58::decode_addr(address, ignore, decoded))
+            if (!tools::base58::decode_addr(address, ignore, decoded))
             {
                 return ADDRESS_NOT_BASE58;
             }
@@ -332,7 +333,7 @@ Error validateAddresses(
             std::vector<uint8_t> extra;
 
             /* Verify the extracted payment ID is valid */
-            if (!CryptoNote::createTxExtraWithPaymentId(paymentID, extra))
+            if (!cryptonote::createTxExtraWithPaymentId(paymentID, extra))
             {
                 return INTEGRATED_ADDRESS_PAYMENT_ID_INVALID;
             }
@@ -341,20 +342,20 @@ Error validateAddresses(
             std::string keys = decoded.substr(paymentIDLen, std::string::npos);
 
             /* Convert keys as string to binary array */
-            CryptoNote::BinaryArray ba = Common::asBinaryArray(keys);
+            cryptonote::BinaryArray ba = common::asBinaryArray(keys);
 
-            CryptoNote::AccountPublicAddress addr;
+            cryptonote::AccountPublicAddress addr;
 
             /* Convert from binary array to public keys */
-            if (!CryptoNote::fromBinaryArray(addr, ba))
+            if (!cryptonote::fromBinaryArray(addr, ba))
             {
                 return ADDRESS_NOT_VALID;
             }
 
             /* Convert the set of extracted keys back into an address, then
                verify that as a normal address */
-            address = CryptoNote::getAccountAddressAsStr(
-                CryptoNote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX,
+            address = cryptonote::getAccountAddressAsStr(
+                cryptonote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX,
                 addr);
         }
 
@@ -362,7 +363,7 @@ Error validateAddresses(
         uint64_t ignore;
 
         /* Not used */
-        CryptoNote::AccountPublicAddress ignore2;
+        cryptonote::AccountPublicAddress ignore2;
 
         if (!parseAccountAddressString(ignore, ignore2, address))
         {
@@ -385,7 +386,7 @@ Error validateOurAddresses(
 
     for (const auto address : addresses)
     {
-        const auto [spendKey, viewKey] = Utilities::addressToKeys(address);
+        const auto [spendKey, viewKey] = utilities::addressToKeys(address);
 
         const auto &keys = subWallets->m_publicSpendKeys;
 

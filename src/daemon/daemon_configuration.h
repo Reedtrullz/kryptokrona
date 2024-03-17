@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -7,8 +8,8 @@
 #include <json.hpp>
 #include <config/cryptonote_config.h>
 #include <logging/ilogger.h>
-#include "common/PathTools.h"
-#include "common/Util.h"
+#include "common/path_tools.h"
+#include "common/util.h"
 
 using nlohmann::json;
 
@@ -19,21 +20,21 @@ namespace DaemonConfig
         DaemonConfiguration()
         {
             std::stringstream logfile;
-            logfile << CryptoNote::CRYPTONOTE_NAME << "d.log";
+            logfile << cryptonote::CRYPTONOTE_NAME << "d.log";
 
-            dataDirectory = Tools::getDefaultDataDirectory();
+            dataDirectory = tools::getDefaultDataDirectory();
             checkPoints = "default";
             logFile = logfile.str();
-            logLevel = Logging::WARNING;
-            dbMaxOpenFiles = CryptoNote::DATABASE_DEFAULT_MAX_OPEN_FILES;
-            dbReadCacheSizeMB = CryptoNote::DATABASE_READ_BUFFER_MB_DEFAULT_SIZE;
-            dbThreads = CryptoNote::DATABASE_DEFAULT_BACKGROUND_THREADS_COUNT;
-            dbWriteBufferSizeMB = CryptoNote::DATABASE_WRITE_BUFFER_MB_DEFAULT_SIZE;
+            logLevel = logging::WARNING;
+            dbMaxOpenFiles = cryptonote::DATABASE_DEFAULT_MAX_OPEN_FILES;
+            dbReadCacheSizeMB = cryptonote::DATABASE_READ_BUFFER_MB_DEFAULT_SIZE;
+            dbThreads = cryptonote::DATABASE_DEFAULT_BACKGROUND_THREADS_COUNT;
+            dbWriteBufferSizeMB = cryptonote::DATABASE_WRITE_BUFFER_MB_DEFAULT_SIZE;
             p2pInterface = "0.0.0.0";
-            p2pPort = CryptoNote::P2P_DEFAULT_PORT;
+            p2pPort = cryptonote::P2P_DEFAULT_PORT;
             p2pExternalPort = 0;
             rpcInterface = "127.0.0.1";
-            rpcPort = CryptoNote::RPC_DEFAULT_PORT;
+            rpcPort = cryptonote::RPC_DEFAULT_PORT;
             noConsole = false;
             enableBlockExplorer = false;
             localIp = false;

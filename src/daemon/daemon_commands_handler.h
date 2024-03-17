@@ -1,11 +1,12 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #pragma once
 
-#include "common/ConsoleHandler.h"
+#include "common/console_handler.h"
 
 #include <logging/logger_ref.h>
 #include <logging/logger_manager.h>
@@ -13,7 +14,7 @@
 #include "rpc/core_rpc_server_commands_definitions.h"
 #include "rpc/json_rpc.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
     class Core;
     class NodeServer;
@@ -22,7 +23,7 @@ namespace CryptoNote
 class DaemonCommandsHandler
 {
 public:
-    DaemonCommandsHandler(CryptoNote::Core &core, CryptoNote::NodeServer &srv, std::shared_ptr<Logging::LoggerManager> log, CryptoNote::RpcServer *prpc_server);
+    DaemonCommandsHandler(cryptonote::Core &core, cryptonote::NodeServer &srv, std::shared_ptr<logging::LoggerManager> log, cryptonote::RpcServer *prpc_server);
 
     bool start_handling()
     {
@@ -38,12 +39,12 @@ public:
     bool exit(const std::vector<std::string> &args);
 
 private:
-    Common::ConsoleHandler m_consoleHandler;
-    CryptoNote::Core &m_core;
-    CryptoNote::NodeServer &m_srv;
-    Logging::LoggerRef logger;
-    std::shared_ptr<Logging::LoggerManager> m_logManager;
-    CryptoNote::RpcServer *m_prpc_server;
+    common::ConsoleHandler m_consoleHandler;
+    cryptonote::Core &m_core;
+    cryptonote::NodeServer &m_srv;
+    logging::LoggerRef logger;
+    std::shared_ptr<logging::LoggerManager> m_logManager;
+    cryptonote::RpcServer *m_prpc_server;
 
     std::string get_commands_str();
     bool print_block_by_height(uint32_t height);

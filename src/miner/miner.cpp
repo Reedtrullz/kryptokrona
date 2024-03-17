@@ -10,24 +10,24 @@
 
 #include <functional>
 #include <mutex>
-#include "common/StringTools.h"
+#include "common/string_tools.h"
 
 #include "crypto/crypto.h"
 #include <crypto/random.h>
-#include "CryptoNoteCore/CachedBlock.h"
-#include "CryptoNoteCore/CheckDifficulty.h"
-#include "CryptoNoteCore/CryptoNoteFormatUtils.h"
+#include "cryptonote_core/cached_block.h"
+#include "cryptonote_core/check_difficulty.h"
+#include "cryptonote_core/cryptonote_format_utils.h"
 
 #include <syst/interrupted_exception.h>
 
 #include <utilities/coloured_msg.h>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    Miner::Miner(System::Dispatcher &dispatcher) : m_dispatcher(dispatcher),
-                                                   m_miningStopped(dispatcher),
-                                                   m_state(MiningState::MINING_STOPPED)
+    Miner::Miner(syst::Dispatcher &dispatcher) : m_dispatcher(dispatcher),
+                                                 m_miningStopped(dispatcher),
+                                                 m_state(MiningState::MINING_STOPPED)
     {
     }
 
@@ -50,7 +50,7 @@ namespace CryptoNote
 
         if (m_state == MiningState::MINING_STOPPED)
         {
-            throw System::InterruptedException();
+            throw syst::InterruptedException();
         }
 
         return m_block;
@@ -75,12 +75,12 @@ namespace CryptoNote
 
         try
         {
-            blockMiningParameters.blockTemplate.nonce = Random::randomValue<uint32_t>();
+            blockMiningParameters.blockTemplate.nonce = rnd::randomValue<uint32_t>();
 
             for (size_t i = 0; i < threadCount; ++i)
             {
-                m_workers.emplace_back(std::unique_ptr<System::RemoteContext<void>>(
-                    new System::RemoteContext<void>(m_dispatcher, std::bind(&Miner::workerFunc, this, blockMiningParameters.blockTemplate, blockMiningParameters.difficulty, static_cast<uint32_t>(threadCount)))));
+                m_workers.emplace_back(std::unique_ptr<syst::RemoteContext<void>>(
+                    new syst::RemoteContext<void>(m_dispatcher, std::bind(&Miner::workerFunc, this, blockMiningParameters.blockTemplate, blockMiningParameters.difficulty, static_cast<uint32_t>(threadCount)))));
 
                 blockMiningParameters.blockTemplate.nonce++;
             }
@@ -107,7 +107,7 @@ namespace CryptoNote
             while (m_state == MiningState::MINING_IN_PROGRESS)
             {
                 CachedBlock cachedBlock(block);
-                Crypto::Hash hash = cachedBlock.getBlockLongHash();
+                crypto::Hash hash = cachedBlock.getBlockLongHash();
 
                 if (check_hash(hash, difficulty))
                 {
@@ -176,4 +176,4 @@ namespace CryptoNote
         return m_hash_count.load();
     }
 
-} // namespace CryptoNote
+} // namespace cryptonote

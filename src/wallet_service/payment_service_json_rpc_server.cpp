@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,7 +9,7 @@
 
 #include <functional>
 
-#include <CryptoTypes.h>
+#include <crypto_types.h>
 #include "crypto/hash.h"
 #include "payment_service_json_rpc_messages.h"
 #include "wallet_service.h"
@@ -18,10 +19,10 @@
 
 #include "rpc/json_rpc.h"
 
-namespace PaymentService
+namespace payment_service
 {
 
-    PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(System::Dispatcher &sys, System::Event &stopEvent, WalletService &service, std::shared_ptr<Logging::ILogger> loggerGroup, PaymentService::ConfigurationManager &config)
+    PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(syst::Dispatcher &sys, syst::Event &stopEvent, WalletService &service, std::shared_ptr<logging::ILogger> loggerGroup, payment_service::ConfigurationManager &config)
         : JsonRpcServer(sys, stopEvent, loggerGroup, config), service(service), logger(loggerGroup, "PaymentServiceJsonRpcServer")
     {
         handlers.emplace("save", jsonHandler<Save::Request, Save::Response>(std::bind(&PaymentServiceJsonRpcServer::handleSave, this, std::placeholders::_1, std::placeholders::_2)));
@@ -53,7 +54,7 @@ namespace PaymentService
         handlers.emplace("getNodeFeeInfo", jsonHandler<NodeFeeInfo::Request, NodeFeeInfo::Response>(std::bind(&PaymentServiceJsonRpcServer::handleNodeFeeInfo, this, std::placeholders::_1, std::placeholders::_2)));
     }
 
-    void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue &req, Common::JsonValue &resp)
+    void PaymentServiceJsonRpcServer::processJsonRpcRequest(const common::JsonValue &req, common::JsonValue &resp)
     {
         try
         {
@@ -75,7 +76,7 @@ namespace PaymentService
                 clientPassword = req("password").getString();
 
                 std::vector<uint8_t> rawData(clientPassword.begin(), clientPassword.end());
-                Crypto::Hash hashedPassword = Crypto::Hash();
+                crypto::Hash hashedPassword = crypto::Hash();
                 cn_slow_hash_v0(rawData.data(), rawData.size(), hashedPassword);
                 if (hashedPassword != config.rpcSecret)
                 {
@@ -86,14 +87,14 @@ namespace PaymentService
 
             if (!req.contains("method"))
             {
-                logger(Logging::WARNING) << "Field \"method\" is not found in json request: " << req;
+                logger(logging::WARNING) << "Field \"method\" is not found in json request: " << req;
                 makeGenericErrorReponse(resp, "Invalid Request", -3600);
                 return;
             }
 
             if (!req("method").isString())
             {
-                logger(Logging::WARNING) << "Field \"method\" is not a string type: " << req;
+                logger(logging::WARNING) << "Field \"method\" is not a string type: " << req;
                 makeGenericErrorReponse(resp, "Invalid Request", -3600);
                 return;
             }
@@ -103,14 +104,14 @@ namespace PaymentService
             auto it = handlers.find(method);
             if (it == handlers.end())
             {
-                logger(Logging::WARNING) << "Requested method not found: " << method;
+                logger(logging::WARNING) << "Requested method not found: " << method;
                 makeMethodNotFoundResponse(resp);
                 return;
             }
 
-            logger(Logging::DEBUGGING) << method << " request came";
+            logger(logging::DEBUGGING) << method << " request came";
 
-            Common::JsonValue params(Common::JsonValue::OBJECT);
+            common::JsonValue params(common::JsonValue::OBJECT);
             if (req.contains("params"))
             {
                 params = req("params");
@@ -120,7 +121,7 @@ namespace PaymentService
         }
         catch (std::exception &e)
         {
-            logger(Logging::WARNING) << "Error occurred while processing JsonRpc request: " << e.what();
+            logger(logging::WARNING) << "Error occurred while processing JsonRpc request: " << e.what();
             makeGenericErrorReponse(resp, e.what());
         }
     }

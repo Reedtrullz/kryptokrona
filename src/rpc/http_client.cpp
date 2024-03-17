@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "http_client.h"
 
@@ -22,10 +12,10 @@
 #include <syst/ipv4_address.h>
 #include <syst/tcp_connector.h>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    HttpClient::HttpClient(System::Dispatcher &dispatcher, const std::string &address, uint16_t port) : m_dispatcher(dispatcher), m_address(address), m_port(port)
+    HttpClient::HttpClient(syst::Dispatcher &dispatcher, const std::string &address, uint16_t port) : m_dispatcher(dispatcher), m_address(address), m_port(port)
     {
     }
 
@@ -65,9 +55,9 @@ namespace CryptoNote
     {
         try
         {
-            auto ipAddr = System::Ipv4Resolver(m_dispatcher).resolve(m_address);
-            m_connection = System::TcpConnector(m_dispatcher).connect(ipAddr, m_port);
-            m_streamBuf.reset(new System::TcpStreambuf(m_connection));
+            auto ipAddr = syst::Ipv4Resolver(m_dispatcher).resolve(m_address);
+            m_connection = syst::TcpConnector(m_dispatcher).connect(ipAddr, m_port);
+            m_streamBuf.reset(new syst::TcpStreambuf(m_connection));
             m_connected = true;
         }
         catch (const std::exception &e)
@@ -95,7 +85,7 @@ namespace CryptoNote
 
         try
         {
-            m_connection = System::TcpConnection();
+            m_connection = syst::TcpConnection();
         }
         catch (std::exception &)
         {

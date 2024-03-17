@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "blockchain_synchronizer.h"
 
@@ -23,15 +13,15 @@
 #include <thread>
 #include <unordered_set>
 
-#include "common/StreamTools.h"
-#include "common/StringTools.h"
-#include "CryptoNoteCore/CryptoNoteBasicImpl.h"
-#include "CryptoNoteCore/CryptoNoteFormatUtils.h"
-#include "CryptoNoteCore/TransactionApi.h"
+#include "common/stream_tools.h"
+#include "common/string_tools.h"
+#include "cryptonote_core/cryptonote_basic_impl.h"
+#include "cryptonote_core/cryptonote_format_utils.h"
+#include "cryptonote_core/transaction_api.h"
 
-using namespace Common;
-using namespace Crypto;
-using namespace Logging;
+using namespace common;
+using namespace crypto;
+using namespace logging;
 
 namespace
 {
@@ -41,7 +31,7 @@ namespace
     class TransactionReaderListFormatter
     {
     public:
-        explicit TransactionReaderListFormatter(const std::vector<std::unique_ptr<CryptoNote::ITransactionReader>> &transactionList) : m_transactionList(transactionList)
+        explicit TransactionReaderListFormatter(const std::vector<std::unique_ptr<cryptonote::ITransactionReader>> &transactionList) : m_transactionList(transactionList)
         {
         }
 
@@ -68,15 +58,15 @@ namespace
         }
 
     private:
-        const std::vector<std::unique_ptr<CryptoNote::ITransactionReader>> &m_transactionList;
+        const std::vector<std::unique_ptr<cryptonote::ITransactionReader>> &m_transactionList;
     };
 
 }
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    BlockchainSynchronizer::BlockchainSynchronizer(INode &node, std::shared_ptr<Logging::ILogger> logger, const Hash &genesisBlockHash) : m_logger(logger, "BlockchainSynchronizer"),
+    BlockchainSynchronizer::BlockchainSynchronizer(INode &node, std::shared_ptr<logging::ILogger> logger, const Hash &genesisBlockHash) : m_logger(logger, "BlockchainSynchronizer"),
                                                                                                                                           m_node(node),
                                                                                                                                           m_genesisBlockHash(genesisBlockHash),
                                                                                                                                           m_currentState(State::stopped),
@@ -135,7 +125,7 @@ namespace CryptoNote
         return getConsumerSynchronizationState(consumer);
     }
 
-    std::vector<Crypto::Hash> BlockchainSynchronizer::getConsumerKnownBlocks(IBlockchainConsumer &consumer) const
+    std::vector<crypto::Hash> BlockchainSynchronizer::getConsumerKnownBlocks(IBlockchainConsumer &consumer) const
     {
         std::unique_lock<std::mutex> lk(m_consumersMutex);
 
@@ -171,7 +161,7 @@ namespace CryptoNote
         return future;
     }
 
-    std::future<void> BlockchainSynchronizer::removeUnconfirmedTransaction(const Crypto::Hash &transactionHash)
+    std::future<void> BlockchainSynchronizer::removeUnconfirmedTransaction(const crypto::Hash &transactionHash)
     {
         m_logger(INFO, BRIGHT_WHITE) << "Removing unconfirmed transaction, hash " << transactionHash;
 
@@ -224,7 +214,7 @@ namespace CryptoNote
         return ec;
     }
 
-    void BlockchainSynchronizer::doRemoveUnconfirmedTransaction(const Crypto::Hash &transactionHash)
+    void BlockchainSynchronizer::doRemoveUnconfirmedTransaction(const crypto::Hash &transactionHash)
     {
         std::unique_lock<std::mutex> lk(m_consumersMutex);
 
@@ -295,7 +285,7 @@ namespace CryptoNote
         while (!m_removeTransactionTasks.empty())
         {
             auto &task = m_removeTransactionTasks.front();
-            const Crypto::Hash &transactionHash = *task.first;
+            const crypto::Hash &transactionHash = *task.first;
             auto detachedPromise = std::move(task.second);
             m_removeTransactionTasks.pop_front();
 
@@ -456,7 +446,7 @@ namespace CryptoNote
     }
     //--------------------------- FSM END ------------------------------------
 
-    void BlockchainSynchronizer::getPoolUnionAndIntersection(std::unordered_set<Crypto::Hash> &poolUnion, std::unordered_set<Crypto::Hash> &poolIntersection) const
+    void BlockchainSynchronizer::getPoolUnionAndIntersection(std::unordered_set<crypto::Hash> &poolUnion, std::unordered_set<crypto::Hash> &poolIntersection) const
     {
         std::unique_lock<std::mutex> lk(m_consumersMutex);
 
@@ -467,7 +457,7 @@ namespace CryptoNote
 
         for (; itConsumers != m_consumers.end(); ++itConsumers)
         {
-            const std::unordered_set<Crypto::Hash> &consumerKnownIds = itConsumers->first->getKnownPoolTxIds();
+            const std::unordered_set<crypto::Hash> &consumerKnownIds = itConsumers->first->getKnownPoolTxIds();
 
             poolUnion.insert(consumerKnownIds.begin(), consumerKnownIds.end());
 
@@ -746,8 +736,8 @@ namespace CryptoNote
     {
         m_logger(INFO, BRIGHT_WHITE) << "Removing outdated pool transactions...";
 
-        std::unordered_set<Crypto::Hash> unionPoolHistory;
-        std::unordered_set<Crypto::Hash> ignored;
+        std::unordered_set<crypto::Hash> unionPoolHistory;
+        std::unordered_set<crypto::Hash> ignored;
         getPoolUnionAndIntersection(unionPoolHistory, ignored);
 
         GetPoolRequest request;
@@ -803,8 +793,8 @@ namespace CryptoNote
     {
         m_logger(DEBUGGING) << "Starting pool synchronization...";
 
-        std::unordered_set<Crypto::Hash> unionPoolHistory;
-        std::unordered_set<Crypto::Hash> intersectedPoolHistory;
+        std::unordered_set<crypto::Hash> unionPoolHistory;
+        std::unordered_set<crypto::Hash> intersectedPoolHistory;
         getPoolUnionAndIntersection(unionPoolHistory, intersectedPoolHistory);
 
         GetPoolRequest unionRequest;
@@ -900,7 +890,7 @@ namespace CryptoNote
 
     std::error_code BlockchainSynchronizer::processPoolTxs(GetPoolResponse &response)
     {
-        m_logger(DEBUGGING) << "Starting to process pool transactions, added " << response.newTxs.size() << ':' << TransactionReaderListFormatter(response.newTxs) << ", deleted " << response.deletedTxIds.size() << ':' << Common::makeContainerFormatter(response.deletedTxIds);
+        m_logger(DEBUGGING) << "Starting to process pool transactions, added " << response.newTxs.size() << ':' << TransactionReaderListFormatter(response.newTxs) << ", deleted " << response.deletedTxIds.size() << ':' << common::makeContainerFormatter(response.deletedTxIds);
 
         std::error_code error;
         {

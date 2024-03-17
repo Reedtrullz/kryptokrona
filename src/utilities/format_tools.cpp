@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -14,13 +15,13 @@
 
 #include <config/cryptonote_config.h>
 
-#include <CryptoNoteCore/Core.h>
+#include <cryptonote_core/core.h>
 
 #include <rpc/core_rpc_server_commands_definitions.h>
 
 #include <config/wallet_config.h>
 
-namespace Utilities
+namespace utilities
 {
 
     std::string get_mining_speed(const uint64_t hashrate)
@@ -117,7 +118,7 @@ namespace Utilities
             }
         }
 
-        const float days = (next_fork - height) / CryptoNote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
+        const float days = (next_fork - height) / cryptonote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 
         /* Next fork in < 30 days away */
         if (days < 30)
@@ -157,7 +158,7 @@ namespace Utilities
             }
         }
 
-        const float days = (static_cast<float>(next_fork - height) / CryptoNote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
+        const float days = (static_cast<float>(next_fork - height) / cryptonote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
 
         std::stringstream stream;
 
@@ -218,7 +219,7 @@ namespace Utilities
         {
             if (upgrade > supported_height)
             {
-                return "The network forked at height " + std::to_string(upgrade) + ", please update your software: " + CryptoNote::LATEST_VERSION_URL;
+                return "The network forked at height " + std::to_string(upgrade) + ", please update your software: " + cryptonote::LATEST_VERSION_URL;
             }
         }
 
@@ -226,7 +227,7 @@ namespace Utilities
         return std::string();
     }
 
-    std::string get_status_string(CryptoNote::COMMAND_RPC_GET_INFO::response iresp)
+    std::string get_status_string(cryptonote::COMMAND_RPC_GET_INFO::response iresp)
     {
         std::stringstream ss;
         std::time_t uptime = std::time(nullptr) - iresp.start_time;
@@ -258,7 +259,7 @@ namespace Utilities
        e.g. 100 for 2 decimal places */
     uint64_t getDivisor()
     {
-        return static_cast<uint64_t>(pow(10, WalletConfig::numDecimalPlaces));
+        return static_cast<uint64_t>(pow(10, wallet_config::numDecimalPlaces));
     }
 
     std::string formatDollars(const uint64_t amount)
@@ -314,7 +315,7 @@ namespace Utilities
     std::string formatCents(const uint64_t amount)
     {
         std::stringstream stream;
-        stream << std::setfill('0') << std::setw(WalletConfig::numDecimalPlaces)
+        stream << std::setfill('0') << std::setw(wallet_config::numDecimalPlaces)
                << amount;
         return stream.str();
     }
@@ -325,7 +326,7 @@ namespace Utilities
         const uint64_t dollars = amount / divisor;
         const uint64_t cents = amount % divisor;
 
-        return formatDollars(dollars) + "." + formatCents(cents) + " " + WalletConfig::ticker;
+        return formatDollars(dollars) + "." + formatCents(cents) + " " + wallet_config::ticker;
     }
 
     std::string formatAmountBasic(const uint64_t amount)
@@ -361,4 +362,4 @@ namespace Utilities
         return msg.str();
     }
 
-} // namespace Utilities
+} // namespace utilities

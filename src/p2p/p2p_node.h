@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
@@ -28,7 +18,7 @@
 #include <syst/timer.h>
 
 #include "ip2p_node_internal.h"
-#include "IStreamSerializable.h"
+#include "istream_serializable.h"
 #include "net_node_config.h"
 
 #include <p2p/p2p_interfaces.h>
@@ -37,7 +27,7 @@
 #include <p2p/peer_list_manager.h>
 #include <p2p/peerlist.h>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class P2pContext;
@@ -51,9 +41,9 @@ namespace CryptoNote
     public:
         P2pNode(
             const P2pNodeConfig &cfg,
-            System::Dispatcher &dispatcher,
-            std::shared_ptr<Logging::ILogger> log,
-            const Crypto::Hash &genesisHash,
+            syst::Dispatcher &dispatcher,
+            std::shared_ptr<logging::ILogger> log,
+            const crypto::Hash &genesisHash,
             uint64_t peerId);
 
         ~P2pNode();
@@ -73,19 +63,19 @@ namespace CryptoNote
         typedef std::unique_ptr<P2pContext> ContextPtr;
         typedef std::list<ContextPtr> ContextList;
 
-        Logging::LoggerRef logger;
+        logging::LoggerRef logger;
         bool m_stopRequested;
         const P2pNodeConfig m_cfg;
         const uint64_t m_myPeerId;
         const CORE_SYNC_DATA m_genesisPayload;
 
-        System::Dispatcher &m_dispatcher;
-        System::ContextGroup workingContextGroup;
-        System::TcpListener m_listener;
-        System::Timer m_connectorTimer;
+        syst::Dispatcher &m_dispatcher;
+        syst::ContextGroup workingContextGroup;
+        syst::TcpListener m_listener;
+        syst::Timer m_connectorTimer;
         PeerlistManager m_peerlist;
         ContextList m_contexts;
-        System::Event m_queueEvent;
+        syst::Event m_queueEvent;
         std::deque<std::unique_ptr<IP2pConnection>> m_connectionQueue;
 
         // IP2pNodeInternal

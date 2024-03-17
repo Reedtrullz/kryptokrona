@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -11,18 +12,18 @@ int main(int argc, char **argv)
 {
     while (true)
     {
-        CryptoNote::MiningConfig config;
+        cryptonote::MiningConfig config;
         config.parse(argc, argv);
 
         try
         {
-            System::Dispatcher dispatcher;
+            syst::Dispatcher dispatcher;
 
             auto httpClient = std::make_shared<httplib::Client>(
                 config.daemonHost.c_str(), config.daemonPort, 10 /* 10 second timeout */
             );
 
-            Miner::MinerManager app(dispatcher, config, httpClient);
+            miner::MinerManager app(dispatcher, config, httpClient);
 
             app.start();
         }

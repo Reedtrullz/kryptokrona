@@ -13,12 +13,12 @@
 #include <cstring>
 #include <memory>
 
-#include "common/Varint.h"
+#include "common/varint.h"
 #include "crypto.h"
 #include "hash.h"
 #include "random.h"
 
-namespace Crypto
+namespace crypto
 {
 
     extern "C"
@@ -29,7 +29,7 @@ namespace Crypto
     static inline void random_scalar(EllipticCurveScalar &res)
     {
         unsigned char tmp[64];
-        Random::randomBytes(64, tmp);
+        rnd::randomBytes(64, tmp);
         sc_reduce(tmp);
         memcpy(&res, tmp, 32);
     }
@@ -121,7 +121,7 @@ namespace Crypto
         } buf;
         char *end = buf.output_index;
         buf.derivation = derivation;
-        Tools::write_varint(end, output_index);
+        tools::write_varint(end, output_index);
         assert(end <= buf.output_index + sizeof buf.output_index);
         hash_to_scalar(&buf, end - reinterpret_cast<char *>(&buf), res);
     }
@@ -136,7 +136,7 @@ namespace Crypto
         } buf;
         char *end = buf.output_index;
         buf.derivation = derivation;
-        Tools::write_varint(end, output_index);
+        tools::write_varint(end, output_index);
         assert(end <= buf.output_index + sizeof buf.output_index);
         size_t bufSize = end - reinterpret_cast<char *>(&buf);
         memcpy(end, suffix, suffixLength);
@@ -393,7 +393,7 @@ namespace Crypto
         const Hash prefixHash,
         const KeyImage keyImage,
         const std::vector<PublicKey> publicKeys,
-        const Crypto::SecretKey transactionSecretKey,
+        const crypto::SecretKey transactionSecretKey,
         uint64_t realOutput)
     {
         std::vector<Signature> signatures(publicKeys.size());

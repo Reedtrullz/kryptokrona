@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -11,7 +12,7 @@
 
 #include "serialization/serialization_overloads.h"
 
-void PeerlistManager::serialize(CryptoNote::ISerializer &s)
+void PeerlistManager::serialize(cryptonote::ISerializer &s)
 {
     const uint8_t currentVersion = 1;
     uint8_t version = currentVersion;
@@ -27,21 +28,21 @@ void PeerlistManager::serialize(CryptoNote::ISerializer &s)
     s(m_peers_gray, "graylist");
 }
 
-void serialize(NetworkAddress &na, CryptoNote::ISerializer &s)
+void serialize(NetworkAddress &na, cryptonote::ISerializer &s)
 {
     s(na.ip, "ip");
     s(na.port, "port");
 }
 
-void serialize(PeerlistEntry &pe, CryptoNote::ISerializer &s)
+void serialize(PeerlistEntry &pe, cryptonote::ISerializer &s)
 {
     s(pe.adr, "adr");
     s(pe.id, "id");
     s(pe.last_seen, "last_seen");
 }
 
-PeerlistManager::PeerlistManager() : m_whitePeerlist(m_peers_white, CryptoNote::P2P_LOCAL_WHITE_PEERLIST_LIMIT),
-                                     m_grayPeerlist(m_peers_gray, CryptoNote::P2P_LOCAL_GRAY_PEERLIST_LIMIT) {}
+PeerlistManager::PeerlistManager() : m_whitePeerlist(m_peers_white, cryptonote::P2P_LOCAL_WHITE_PEERLIST_LIMIT),
+                                     m_grayPeerlist(m_peers_gray, cryptonote::P2P_LOCAL_GRAY_PEERLIST_LIMIT) {}
 
 bool PeerlistManager::init(bool allow_local_ip)
 {
@@ -83,7 +84,7 @@ bool PeerlistManager::get_gray_peer_by_index(PeerlistEntry &p, size_t i) const
 
 bool PeerlistManager::is_ip_allowed(uint32_t ip) const
 {
-    System::Ipv4Address addr(networkToHost(ip));
+    syst::Ipv4Address addr(networkToHost(ip));
 
     // never allow loopback ip
     if (addr.isLoopback())

@@ -1,24 +1,14 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "levin_protocol.h"
 #include <syst/tcp_connection.h>
 
-using namespace CryptoNote;
+using namespace cryptonote;
 
 namespace
 {
@@ -50,7 +40,7 @@ bool LevinProtocol::Command::needReply() const
     return !(isNotify || isResponse);
 }
 
-LevinProtocol::LevinProtocol(System::TcpConnection &connection)
+LevinProtocol::LevinProtocol(syst::TcpConnection &connection)
     : m_conn(connection) {}
 
 void LevinProtocol::sendMessage(uint32_t command, const BinaryArray &out, bool needResponse)
@@ -67,7 +57,7 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray &out, bool n
     BinaryArray writeBuffer;
     writeBuffer.reserve(sizeof(head) + out.size());
 
-    Common::VectorOutputStream stream(writeBuffer);
+    common::VectorOutputStream stream(writeBuffer);
     stream.writeSome(&head, sizeof(head));
     stream.writeSome(out.data(), out.size());
 
@@ -126,7 +116,7 @@ void LevinProtocol::sendReply(uint32_t command, const BinaryArray &out, int32_t 
     BinaryArray writeBuffer;
     writeBuffer.reserve(sizeof(head) + out.size());
 
-    Common::VectorOutputStream stream(writeBuffer);
+    common::VectorOutputStream stream(writeBuffer);
     stream.writeSome(&head, sizeof(head));
     stream.writeSome(out.data(), out.size());
 

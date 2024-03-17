@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,11 +9,11 @@
 
 #include "cryptonote_protocol/cryptonote_protocol_definitions.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
     struct PendingLiteBlock
     {
         NOTIFY_NEW_LITE_BLOCK_request request;
-        std::unordered_set<Crypto::Hash> missed_transactions;
+        std::unordered_set<crypto::Hash> missed_transactions;
     };
-} // namespace CryptoNote
+} // namespace cryptonote

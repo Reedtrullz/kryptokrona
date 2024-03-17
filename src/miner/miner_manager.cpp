@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -12,12 +13,12 @@
 #include <thread>
 #include <chrono>
 
-#include "common/StringTools.h"
+#include "common/string_tools.h"
 #include <config/cryptonote_config.h>
-#include "CryptoNoteCore/CachedBlock.h"
-#include "CryptoNoteCore/CryptoNoteTools.h"
-#include "CryptoNoteCore/CryptoNoteFormatUtils.h"
-#include "CryptoNoteCore/TransactionExtra.h"
+#include "cryptonote_core/cached_block.h"
+#include "cryptonote_core/cryptonote_tools.h"
+#include "cryptonote_core/cryptonote_format_utils.h"
+#include "cryptonote_core/transaction_extra.h"
 #include "rpc/http_client.h"
 #include "rpc/core_rpc_server_commands_definitions.h"
 #include "rpc/json_rpc.h"
@@ -26,11 +27,11 @@
 
 #include <utilities/coloured_msg.h>
 
-using namespace CryptoNote;
+using namespace cryptonote;
 
 using json = nlohmann::json;
 
-namespace Miner
+namespace miner
 {
 
     namespace
@@ -56,12 +57,12 @@ namespace Miner
 
             if (blockTemplate.majorVersion >= BLOCK_MAJOR_VERSION_2)
             {
-                CryptoNote::TransactionExtraMergeMiningTag mmTag;
+                cryptonote::TransactionExtraMergeMiningTag mmTag;
                 mmTag.depth = 0;
                 mmTag.merkleRoot = cachedBlock.getAuxiliaryBlockHeaderHash();
 
                 blockTemplate.parentBlock.baseTransaction.extra.clear();
-                if (!CryptoNote::appendMergeMiningTagToExtra(blockTemplate.parentBlock.baseTransaction.extra, mmTag))
+                if (!cryptonote::appendMergeMiningTagToExtra(blockTemplate.parentBlock.baseTransaction.extra, mmTag))
                 {
                     throw std::runtime_error("Couldn't append merge mining tag");
                 }
@@ -71,8 +72,8 @@ namespace Miner
     } // namespace
 
     MinerManager::MinerManager(
-        System::Dispatcher &dispatcher,
-        const CryptoNote::MiningConfig &config,
+        syst::Dispatcher &dispatcher,
+        const cryptonote::MiningConfig &config,
         const std::shared_ptr<httplib::Client> httpClient) :
 
                                                              m_contextGroup(dispatcher),
@@ -115,7 +116,7 @@ namespace Miner
             last_hash_count = current_hash_count;
 
             std::cout << SuccessMsg("\nMining at ")
-                      << SuccessMsg(Utilities::get_mining_speed(hashes))
+                      << SuccessMsg(utilities::get_mining_speed(hashes))
                       << "\n\n";
         }
     }
@@ -188,7 +189,7 @@ namespace Miner
         m_eventOccurred.set();
     }
 
-    void MinerManager::startMining(const CryptoNote::BlockMiningParameters &params)
+    void MinerManager::startMining(const cryptonote::BlockMiningParameters &params)
     {
         m_contextGroup.spawn([this, params]()
                              {
@@ -233,7 +234,7 @@ namespace Miner
         json j = {
             {"jsonrpc", "2.0"},
             {"method", "submitblock"},
-            {"params", {Common::toHex(toBinaryArray(minedBlock))}}};
+            {"params", {common::toHex(toBinaryArray(minedBlock))}}};
 
         auto res = m_httpClient->Post("/json_rpc", j.dump(), "application/json");
 
@@ -306,7 +307,7 @@ namespace Miner
                 BlockMiningParameters params;
                 params.difficulty = j.at("result").at("difficulty").get<uint64_t>();
 
-                std::vector<uint8_t> blob = Common::fromHex(
+                std::vector<uint8_t> blob = common::fromHex(
                     j.at("result").at("blocktemplate_blob").get<std::string>());
 
                 if (!fromBinaryArray(params.blockTemplate, blob))
@@ -334,7 +335,7 @@ namespace Miner
         }
     }
 
-    void MinerManager::adjustBlockTemplate(CryptoNote::BlockTemplate &blockTemplate) const
+    void MinerManager::adjustBlockTemplate(cryptonote::BlockTemplate &blockTemplate) const
     {
         adjustMergeMiningTag(blockTemplate);
 
@@ -354,4 +355,4 @@ namespace Miner
         }
     }
 
-} // namespace Miner
+} // namespace miner

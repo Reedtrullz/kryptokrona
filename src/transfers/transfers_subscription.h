@@ -1,35 +1,25 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
-#include "ITransfersSynchronizer.h"
+#include "itransfers_synchronizer.h"
 #include "transfers_container.h"
 #include "iobservable_impl.h"
 
 #include "logging/logger_ref.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class TransfersSubscription : public IObservableImpl<ITransfersObserver, ITransfersSubscription>
     {
     public:
-        TransfersSubscription(const CryptoNote::Currency &currency, std::shared_ptr<Logging::ILogger> logger, const AccountSubscription &sub);
+        TransfersSubscription(const cryptonote::Currency &currency, std::shared_ptr<logging::ILogger> logger, const AccountSubscription &sub);
 
         SynchronizationStart getSyncStart();
         void onBlockchainDetach(uint32_t height);
@@ -39,15 +29,15 @@ namespace CryptoNote
         bool addTransaction(const TransactionBlockInfo &blockInfo, const ITransactionReader &tx,
                             const std::vector<TransactionOutputInformationIn> &transfers);
 
-        void deleteUnconfirmedTransaction(const Crypto::Hash &transactionHash);
-        void markTransactionConfirmed(const TransactionBlockInfo &block, const Crypto::Hash &transactionHash, const std::vector<uint32_t> &globalIndices);
+        void deleteUnconfirmedTransaction(const crypto::Hash &transactionHash);
+        void markTransactionConfirmed(const TransactionBlockInfo &block, const crypto::Hash &transactionHash, const std::vector<uint32_t> &globalIndices);
 
         // ITransfersSubscription
         virtual AccountPublicAddress getAddress() override;
         virtual ITransfersContainer &getContainer() override;
 
     private:
-        Logging::LoggerRef logger;
+        logging::LoggerRef logger;
         TransfersContainer transfers;
         AccountSubscription subscription;
         std::string m_address;

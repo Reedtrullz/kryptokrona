@@ -1,11 +1,12 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #include "blockchain_monitor.h"
 
-#include "common/StringTools.h"
+#include "common/string_tools.h"
 
 #include <syst/event_lock.h>
 #include <syst/timer.h>
@@ -19,7 +20,7 @@
 using json = nlohmann::json;
 
 BlockchainMonitor::BlockchainMonitor(
-    System::Dispatcher &dispatcher,
+    syst::Dispatcher &dispatcher,
     const size_t pollingInterval,
     const std::shared_ptr<httplib::Client> httpClient) :
 
@@ -47,7 +48,7 @@ void BlockchainMonitor::waitBlockchainUpdate()
     {
         m_sleepingContext.spawn([this]()
                                 {
-            System::Timer timer(m_dispatcher);
+            syst::Timer timer(m_dispatcher);
             timer.sleep(std::chrono::seconds(m_pollingInterval)); });
 
         m_sleepingContext.wait();
@@ -68,7 +69,7 @@ void BlockchainMonitor::waitBlockchainUpdate()
 
     if (m_stopped)
     {
-        throw System::InterruptedException();
+        throw syst::InterruptedException();
     }
 }
 
@@ -80,7 +81,7 @@ void BlockchainMonitor::stop()
     m_sleepingContext.wait();
 }
 
-std::optional<Crypto::Hash> BlockchainMonitor::requestLastBlockHash()
+std::optional<crypto::Hash> BlockchainMonitor::requestLastBlockHash()
 {
     json j = {
         {"jsonrpc", "2.0"},
@@ -127,7 +128,7 @@ std::optional<Crypto::Hash> BlockchainMonitor::requestLastBlockHash()
             return std::nullopt;
         }
 
-        return j.at("result").at("block_header").at("hash").get<Crypto::Hash>();
+        return j.at("result").at("block_header").at("hash").get<crypto::Hash>();
     }
     catch (const json::exception &e)
     {

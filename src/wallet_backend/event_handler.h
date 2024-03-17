@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -57,5 +58,5 @@ class EventHandler
 public:
     Event<uint64_t> onSynced;
 
-    Event<WalletTypes::Transaction> onTransaction;
+    Event<wallet_types::Transaction> onTransaction;
 };

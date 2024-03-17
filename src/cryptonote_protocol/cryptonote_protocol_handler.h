@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,14 +9,14 @@
 
 #include <atomic>
 
-#include <common/ObserverManager.h>
+#include <common/observer_manager.h>
 
-#include "CryptoNoteCore/ICore.h"
+#include "cryptonote_core/icore.h"
 
 #include "cryptonote_protocol/cryptonote_protocol_definitions.h"
 #include "cryptonote_protocol/cryptonote_protocol_handler_common.h"
-#include "cryptonoteProtocol/icryptonote_protocol_observer.h"
-#include "cryptonoteProtocol/icryptonote_protocol_query.h"
+#include "cryptonote_protocol/icryptonote_protocol_observer.h"
+#include "cryptonote_protocol/icryptonote_protocol_query.h"
 
 #include "p2p/p2p_protocol_definitions.h"
 #include "p2p/net_node_common.h"
@@ -23,19 +24,19 @@
 
 #include <logging/logger_ref.h>
 
-namespace System
+namespace syst
 {
     class Dispatcher;
 }
 
-namespace CryptoNote
+namespace cryptonote
 {
     class Currency;
 
     class CryptoNoteProtocolHandler : public ICryptoNoteProtocolHandler
     {
     public:
-        CryptoNoteProtocolHandler(const Currency &currency, System::Dispatcher &dispatcher, ICore &rcore, IP2pEndpoint *p_net_layout, std::shared_ptr<Logging::ILogger> log);
+        CryptoNoteProtocolHandler(const Currency &currency, syst::Dispatcher &dispatcher, ICore &rcore, IP2pEndpoint *p_net_layout, std::shared_ptr<logging::ILogger> log);
 
         virtual bool addObserver(ICryptoNoteProtocolObserver *observer) override;
         virtual bool removeObserver(ICryptoNoteProtocolObserver *observer) override;
@@ -82,13 +83,13 @@ namespace CryptoNote
         void updateObservedHeight(uint32_t peerHeight, const CryptoNoteConnectionContext &context);
         void recalculateMaxObservedHeight(const CryptoNoteConnectionContext &context);
         int processObjects(CryptoNoteConnectionContext &context, std::vector<RawBlock> &&rawBlocks, const std::vector<CachedBlock> &cachedBlocks);
-        Logging::LoggerRef logger;
+        logging::LoggerRef logger;
 
     private:
         int doPushLiteBlock(NOTIFY_NEW_LITE_BLOCK::request block, CryptoNoteConnectionContext &context, std::vector<BinaryArray> missingTxs);
 
     private:
-        System::Dispatcher &m_dispatcher;
+        syst::Dispatcher &m_dispatcher;
         ICore &m_core;
         const Currency &m_currency;
 
@@ -104,6 +105,6 @@ namespace CryptoNote
         uint32_t m_blockchainHeight;
 
         std::atomic<size_t> m_peersCount;
-        Tools::ObserverManager<ICryptoNoteProtocolObserver> m_observerManager;
+        tools::ObserverManager<ICryptoNoteProtocolObserver> m_observerManager;
     };
 }

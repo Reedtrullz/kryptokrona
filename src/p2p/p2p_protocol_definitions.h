@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -11,16 +12,16 @@
 
 #include "crypto/crypto.h"
 #include <config/cryptonote_config.h>
-#include "CryptoNoteCore/CoreStatistics.h"
+#include "cryptonote_core/core_statistics.h"
 
 // new serialization
 #include "serialization/iserializer.h"
 #include "serialization/serialization_overloads.h"
-#include "CryptoNoteCore/CryptoNoteSerialization.h"
+#include "cryptonote_core/cryptonote_serialization.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
-    inline bool serialize(boost::uuids::uuid &v, Common::StringView name, ISerializer &s)
+    inline bool serialize(boost::uuids::uuid &v, common::StringView name, ISerializer &s)
     {
         return s.binary(&v, sizeof(v), name);
     }
@@ -67,7 +68,7 @@ namespace CryptoNote
     struct CORE_SYNC_DATA
     {
         uint32_t current_height;
-        Crypto::Hash top_id;
+        crypto::Hash top_id;
 
         void serialize(ISerializer &s)
         {
@@ -195,7 +196,7 @@ namespace CryptoNote
     {
         uint64_t peer_id;
         uint64_t time;
-        Crypto::Signature sign;
+        crypto::Signature sign;
 
         void serialize(ISerializer &s)
         {
@@ -205,12 +206,12 @@ namespace CryptoNote
         }
     };
 
-    inline Crypto::Hash get_proof_of_trust_hash(const proof_of_trust &pot)
+    inline crypto::Hash get_proof_of_trust_hash(const proof_of_trust &pot)
     {
         std::string s;
         s.append(reinterpret_cast<const char *>(&pot.peer_id), sizeof(pot.peer_id));
         s.append(reinterpret_cast<const char *>(&pot.time), sizeof(pot.time));
-        return Crypto::cn_fast_hash(s.data(), s.size());
+        return crypto::cn_fast_hash(s.data(), s.size());
     }
 
     struct COMMAND_REQUEST_STAT_INFO

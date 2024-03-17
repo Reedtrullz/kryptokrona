@@ -1,27 +1,17 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
-#include "INode.h"
+#include "inode.h"
 #include "synchronization_state.h"
 #include "iblockchain_synchronizer.h"
 #include "iobservable_impl.h"
-#include "IStreamSerializable.h"
+#include "istream_serializable.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -30,24 +20,24 @@
 
 #include "logging/logger_ref.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class BlockchainSynchronizer : public IObservableImpl<IBlockchainSynchronizerObserver, IBlockchainSynchronizer>,
                                    public INodeObserver
     {
     public:
-        BlockchainSynchronizer(INode &node, std::shared_ptr<Logging::ILogger> logger, const Crypto::Hash &genesisBlockHash);
+        BlockchainSynchronizer(INode &node, std::shared_ptr<logging::ILogger> logger, const crypto::Hash &genesisBlockHash);
         ~BlockchainSynchronizer();
 
         // IBlockchainSynchronizer
         virtual void addConsumer(IBlockchainConsumer *consumer) override;
         virtual bool removeConsumer(IBlockchainConsumer *consumer) override;
         virtual IStreamSerializable *getConsumerState(IBlockchainConsumer *consumer) const override;
-        virtual std::vector<Crypto::Hash> getConsumerKnownBlocks(IBlockchainConsumer &consumer) const override;
+        virtual std::vector<crypto::Hash> getConsumerKnownBlocks(IBlockchainConsumer &consumer) const override;
 
         virtual std::future<std::error_code> addUnconfirmedTransaction(const ITransactionReader &transaction) override;
-        virtual std::future<void> removeUnconfirmedTransaction(const Crypto::Hash &transactionHash) override;
+        virtual std::future<void> removeUnconfirmedTransaction(const crypto::Hash &transactionHash) override;
 
         virtual void start() override;
         virtual void stop() override;
@@ -76,20 +66,20 @@ namespace CryptoNote
                 syncStart.height = 0;
             }
             SynchronizationStart syncStart;
-            std::vector<Crypto::Hash> knownBlocks;
+            std::vector<crypto::Hash> knownBlocks;
         };
 
         struct GetPoolResponse
         {
             bool isLastKnownBlockActual;
             std::vector<std::unique_ptr<ITransactionReader>> newTxs;
-            std::vector<Crypto::Hash> deletedTxIds;
+            std::vector<crypto::Hash> deletedTxIds;
         };
 
         struct GetPoolRequest
         {
-            std::vector<Crypto::Hash> knownTxIds;
-            Crypto::Hash lastKnownBlock;
+            std::vector<crypto::Hash> knownTxIds;
+            crypto::Hash lastKnownBlock;
         };
 
         enum class State
@@ -118,7 +108,7 @@ namespace CryptoNote
         std::error_code processPoolTxs(GetPoolResponse &response);
         std::error_code getPoolSymmetricDifferenceSync(GetPoolRequest &&request, GetPoolResponse &response);
         std::error_code doAddUnconfirmedTransaction(const ITransactionReader &transaction);
-        void doRemoveUnconfirmedTransaction(const Crypto::Hash &transactionHash);
+        void doRemoveUnconfirmedTransaction(const crypto::Hash &transactionHash);
 
         /// second parameter is used only in case of errors returned into callback from INode, such as aborted or connection lost
         bool setFutureState(State s);
@@ -131,23 +121,23 @@ namespace CryptoNote
         void workingProcedure();
 
         GetBlocksRequest getCommonHistory();
-        void getPoolUnionAndIntersection(std::unordered_set<Crypto::Hash> &poolUnion, std::unordered_set<Crypto::Hash> &poolIntersection) const;
+        void getPoolUnionAndIntersection(std::unordered_set<crypto::Hash> &poolUnion, std::unordered_set<crypto::Hash> &poolIntersection) const;
         SynchronizationState *getConsumerSynchronizationState(IBlockchainConsumer *consumer) const;
 
         typedef std::map<IBlockchainConsumer *, std::shared_ptr<SynchronizationState>> ConsumersMap;
 
-        mutable Logging::LoggerRef m_logger;
+        mutable logging::LoggerRef m_logger;
         ConsumersMap m_consumers;
         INode &m_node;
-        const Crypto::Hash m_genesisBlockHash;
+        const crypto::Hash m_genesisBlockHash;
 
-        Crypto::Hash lastBlockId;
+        crypto::Hash lastBlockId;
 
         State m_currentState;
         State m_futureState;
         std::unique_ptr<std::thread> workingThread;
         std::list<std::pair<const ITransactionReader *, std::promise<std::error_code>>> m_addTransactionTasks;
-        std::list<std::pair<const Crypto::Hash *, std::promise<void>>> m_removeTransactionTasks;
+        std::list<std::pair<const crypto::Hash *, std::promise<void>>> m_removeTransactionTasks;
 
         mutable std::mutex m_consumersMutex;
         mutable std::mutex m_stateMutex;

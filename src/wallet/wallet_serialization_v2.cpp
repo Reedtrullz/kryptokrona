@@ -1,28 +1,18 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "wallet_serialization_v2.h"
 
-#include "CryptoNoteCore/CryptoNoteSerialization.h"
+#include "cryptonote_core/cryptonote_serialization.h"
 #include "serialization/binary_input_stream_serializer.h"
 #include "serialization/binary_output_stream_serializer.h"
 
-using namespace Common;
-using namespace Crypto;
+using namespace common;
+using namespace crypto;
 
 namespace
 {
@@ -32,7 +22,7 @@ namespace
     {
         uint32_t blockHeight;
         Hash transactionHash;
-        Crypto::PublicKey walletSpendPublicKey;
+        crypto::PublicKey walletSpendPublicKey;
     };
 
     // DO NOT CHANGE IT
@@ -42,7 +32,7 @@ namespace
         {
         }
 
-        WalletTransactionDtoV2(const CryptoNote::WalletTransaction &wallet)
+        WalletTransactionDtoV2(const cryptonote::WalletTransaction &wallet)
         {
             state = wallet.state;
             timestamp = wallet.timestamp;
@@ -56,7 +46,7 @@ namespace
             isBase = wallet.isBase;
         }
 
-        CryptoNote::WalletTransactionState state;
+        cryptonote::WalletTransactionState state;
         uint64_t timestamp;
         uint32_t blockHeight;
         Hash hash;
@@ -75,7 +65,7 @@ namespace
         {
         }
 
-        WalletTransferDtoV2(const CryptoNote::WalletTransfer &tr)
+        WalletTransferDtoV2(const cryptonote::WalletTransfer &tr)
         {
             address = tr.address;
             amount = tr.amount;
@@ -87,23 +77,23 @@ namespace
         uint8_t type;
     };
 
-    void serialize(UnlockTransactionJobDtoV2 &value, CryptoNote::ISerializer &serializer)
+    void serialize(UnlockTransactionJobDtoV2 &value, cryptonote::ISerializer &serializer)
     {
         serializer(value.blockHeight, "blockHeight");
         serializer(value.transactionHash, "transactionHash");
         serializer(value.walletSpendPublicKey, "walletSpendPublicKey");
     }
 
-    void serialize(WalletTransactionDtoV2 &value, CryptoNote::ISerializer &serializer)
+    void serialize(WalletTransactionDtoV2 &value, cryptonote::ISerializer &serializer)
     {
-        typedef std::underlying_type<CryptoNote::WalletTransactionState>::type StateType;
+        typedef std::underlying_type<cryptonote::WalletTransactionState>::type StateType;
 
         StateType state = static_cast<StateType>(value.state);
         serializer(state, "state");
-        value.state = static_cast<CryptoNote::WalletTransactionState>(state);
+        value.state = static_cast<cryptonote::WalletTransactionState>(state);
 
         serializer(value.timestamp, "timestamp");
-        CryptoNote::serializeBlockHeight(serializer, value.blockHeight, "blockHeight");
+        cryptonote::serializeBlockHeight(serializer, value.blockHeight, "blockHeight");
         serializer(value.hash, "hash");
         serializer(value.totalAmount, "totalAmount");
         serializer(value.fee, "fee");
@@ -113,7 +103,7 @@ namespace
         serializer(value.isBase, "isBase");
     }
 
-    void serialize(WalletTransferDtoV2 &value, CryptoNote::ISerializer &serializer)
+    void serialize(WalletTransferDtoV2 &value, cryptonote::ISerializer &serializer)
     {
         serializer(value.address, "address");
         serializer(value.amount, "amount");
@@ -122,13 +112,13 @@ namespace
 
 }
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     WalletSerializerV2::WalletSerializerV2(
         ITransfersObserver &transfersObserver,
-        Crypto::PublicKey &viewPublicKey,
-        Crypto::SecretKey &viewSecretKey,
+        crypto::PublicKey &viewPublicKey,
+        crypto::SecretKey &viewSecretKey,
         uint64_t &actualBalance,
         uint64_t &pendingBalance,
         WalletsContainer &walletsContainer,
@@ -150,9 +140,9 @@ namespace CryptoNote
     {
     }
 
-    void WalletSerializerV2::load(Common::IInputStream &source, uint8_t version)
+    void WalletSerializerV2::load(common::IInputStream &source, uint8_t version)
     {
-        CryptoNote::BinaryInputStreamSerializer s(source);
+        cryptonote::BinaryInputStreamSerializer s(source);
 
         uint8_t saveLevelValue;
         s(saveLevelValue, "saveLevel");
@@ -176,9 +166,9 @@ namespace CryptoNote
         s(m_extra, "extra");
     }
 
-    void WalletSerializerV2::save(Common::IOutputStream &destination, WalletSaveLevel saveLevel)
+    void WalletSerializerV2::save(common::IOutputStream &destination, WalletSaveLevel saveLevel)
     {
-        CryptoNote::BinaryOutputStreamSerializer s(destination);
+        cryptonote::BinaryOutputStreamSerializer s(destination);
 
         uint8_t saveLevelValue = static_cast<uint8_t>(saveLevel);
         s(saveLevelValue, "saveLevel");
@@ -201,17 +191,17 @@ namespace CryptoNote
         s(m_extra, "extra");
     }
 
-    std::unordered_set<Crypto::PublicKey> &WalletSerializerV2::addedKeys()
+    std::unordered_set<crypto::PublicKey> &WalletSerializerV2::addedKeys()
     {
         return m_addedKeys;
     }
 
-    std::unordered_set<Crypto::PublicKey> &WalletSerializerV2::deletedKeys()
+    std::unordered_set<crypto::PublicKey> &WalletSerializerV2::deletedKeys()
     {
         return m_deletedKeys;
     }
 
-    void WalletSerializerV2::loadKeyListAndBalances(CryptoNote::ISerializer &serializer, bool saveCache)
+    void WalletSerializerV2::loadKeyListAndBalances(cryptonote::ISerializer &serializer, bool saveCache)
     {
         uint64_t walletCount;
         serializer(walletCount, "walletCount");
@@ -220,11 +210,11 @@ namespace CryptoNote
         m_pendingBalance = 0;
         m_deletedKeys.clear();
 
-        std::unordered_set<Crypto::PublicKey> cachedKeySet;
+        std::unordered_set<crypto::PublicKey> cachedKeySet;
         auto &index = m_walletsContainer.get<KeysIndex>();
         for (size_t i = 0; i < walletCount; ++i)
         {
-            Crypto::PublicKey spendPublicKey;
+            crypto::PublicKey spendPublicKey;
             uint64_t actualBalance;
             uint64_t pendingBalance;
             serializer(spendPublicKey, "spendPublicKey");
@@ -263,7 +253,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::saveKeyListAndBalances(CryptoNote::ISerializer &serializer, bool saveCache)
+    void WalletSerializerV2::saveKeyListAndBalances(cryptonote::ISerializer &serializer, bool saveCache)
     {
         uint64_t walletCount = m_walletsContainer.get<RandomAccessIndex>().size();
         serializer(walletCount, "walletCount");
@@ -279,7 +269,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::loadTransactions(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::loadTransactions(cryptonote::ISerializer &serializer)
     {
         uint64_t count = 0;
         serializer(count, "transactionCount");
@@ -307,7 +297,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::saveTransactions(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::saveTransactions(cryptonote::ISerializer &serializer)
     {
         uint64_t count = m_transactions.size();
         serializer(count, "transactionCount");
@@ -319,7 +309,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::loadTransfers(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::loadTransfers(cryptonote::ISerializer &serializer)
     {
         uint64_t count = 0;
         serializer(count, "transferCount");
@@ -343,7 +333,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::saveTransfers(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::saveTransfers(cryptonote::ISerializer &serializer)
     {
         uint64_t count = m_transfers.size();
         serializer(count, "transferCount");
@@ -359,7 +349,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::loadTransfersSynchronizer(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::loadTransfersSynchronizer(cryptonote::ISerializer &serializer)
     {
         std::string transfersSynchronizerData;
         serializer(transfersSynchronizerData, "transfersSynchronizer");
@@ -368,7 +358,7 @@ namespace CryptoNote
         m_synchronizer.load(stream);
     }
 
-    void WalletSerializerV2::saveTransfersSynchronizer(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::saveTransfersSynchronizer(cryptonote::ISerializer &serializer)
     {
         std::stringstream stream;
         m_synchronizer.save(stream);
@@ -378,7 +368,7 @@ namespace CryptoNote
         serializer(transfersSynchronizerData, "transfersSynchronizer");
     }
 
-    void WalletSerializerV2::loadUnlockTransactionsJobs(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::loadUnlockTransactionsJobs(cryptonote::ISerializer &serializer)
     {
         auto &index = m_unlockTransactions.get<TransactionHashIndex>();
         auto &walletsIndex = m_walletsContainer.get<KeysIndex>();
@@ -404,7 +394,7 @@ namespace CryptoNote
         }
     }
 
-    void WalletSerializerV2::saveUnlockTransactionsJobs(CryptoNote::ISerializer &serializer)
+    void WalletSerializerV2::saveUnlockTransactionsJobs(cryptonote::ISerializer &serializer)
     {
         auto &index = m_unlockTransactions.get<TransactionHashIndex>();
         auto &wallets = m_walletsContainer.get<TransfersContainerIndex>();
@@ -429,4 +419,4 @@ namespace CryptoNote
         }
     }
 
-} // namespace CryptoNote
+} // namespace cryptonote

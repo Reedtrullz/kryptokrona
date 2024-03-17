@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "blockchain_explorer.h"
 
@@ -23,18 +13,18 @@
 #include <utility>
 
 #include "blockchain_explorer_errors.h"
-#include "common/StdOutputStream.h"
-#include "common/StdInputStream.h"
-#include "CryptoNoteCore/CryptoNoteFormatUtils.h"
-#include "CryptoNoteCore/CryptoNoteBasicImpl.h"
+#include "common/std_output_stream.h"
+#include "common/std_input_stream.h"
+#include "cryptonote_core/cryptonote_format_utils.h"
+#include "cryptonote_core/cryptonote_basic_impl.h"
 #include <config/cryptonote_config.h>
 
-#include "ITransaction.h"
+#include "itransaction.h"
 
-using namespace Logging;
-using namespace Crypto;
+using namespace logging;
+using namespace crypto;
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class ContextCounterHolder
@@ -164,7 +154,7 @@ namespace CryptoNote
         bool m_cancelled;
     };
 
-    BlockchainExplorer::BlockchainExplorer(INode &node, std::shared_ptr<Logging::ILogger> logger) : node(node),
+    BlockchainExplorer::BlockchainExplorer(INode &node, std::shared_ptr<logging::ILogger> logger) : node(node),
                                                                                                     logger(logger, "BlockchainExplorer"),
                                                                                                     state(NOT_INITIALIZED),
                                                                                                     synchronized(false),
@@ -178,7 +168,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
         observersCounter.fetch_add(1);
         return observerManager.add(observer);
@@ -188,7 +178,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
         if (observersCounter.load() != 0)
         {
@@ -220,24 +210,24 @@ namespace CryptoNote
         if (state.load() != NOT_INITIALIZED)
         {
             logger(ERROR) << "Init called on already initialized BlockchainExplorer.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::ALREADY_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::ALREADY_INITIALIZED));
         }
 
         if (!getBlockchainTop(knownBlockchainTop, false))
         {
             logger(ERROR) << "Can't get blockchain top.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
         }
 
-        std::vector<Crypto::Hash> knownPoolTransactionHashes;
+        std::vector<crypto::Hash> knownPoolTransactionHashes;
         bool isBlockchainActual;
         std::vector<TransactionDetails> newTransactions;
-        std::vector<Crypto::Hash> removedTransactions;
+        std::vector<crypto::Hash> removedTransactions;
         StateRollback stateRollback(state);
         if (!getPoolState(knownPoolTransactionHashes, knownBlockchainTop.hash, isBlockchainActual, newTransactions, removedTransactions))
         {
             logger(ERROR) << "Can't get pool state.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
         }
 
         assert(removedTransactions.empty());
@@ -249,7 +239,7 @@ namespace CryptoNote
         else
         {
             logger(ERROR) << "Can't add observer to node.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
         }
     }
 
@@ -258,7 +248,7 @@ namespace CryptoNote
         if (state.load() != INITIALIZED)
         {
             logger(ERROR) << "Shutdown called on not initialized BlockchainExplorer.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         node.removeObserver(this);
@@ -275,7 +265,7 @@ namespace CryptoNote
     {
         if (checkInitialization && state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         if (blockIndexes.empty())
@@ -300,7 +290,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         if (blockHashes.empty())
@@ -326,12 +316,12 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         if (timestampBegin > timestampEnd)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::REQUEST_ERROR), "timestampBegin must not be greater than timestampEnd");
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::REQUEST_ERROR), "timestampBegin must not be greater than timestampEnd");
         }
 
         logger(DEBUGGING) << "Get blocks by timestamp " << timestampBegin << " - " << timestampEnd << " request came.";
@@ -370,7 +360,7 @@ namespace CryptoNote
     {
         if (checkInitialization && state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         logger(DEBUGGING) << "Get blockchain top request came.";
@@ -383,7 +373,7 @@ namespace CryptoNote
         if (!getBlocks(indexes, blocks, checkInitialization))
         {
             logger(ERROR) << "Can't get blockchain top.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
         }
         assert(blocks.size() == indexes.size() && blocks.size() == 1);
 
@@ -401,7 +391,7 @@ namespace CryptoNote
         if (!gotMainchainBlock)
         {
             logger(ERROR) << "Can't get blockchain top: all blocks on index " << lastIndex << " are orphaned.";
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::INTERNAL_ERROR));
         }
         return true;
     }
@@ -410,7 +400,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         if (transactionHashes.empty())
@@ -435,12 +425,12 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         logger(DEBUGGING) << "Get transactions by payment id " << paymentId << " request came.";
 
-        std::vector<Crypto::Hash> transactionHashes;
+        std::vector<crypto::Hash> transactionHashes;
         NodeRequest request([&](const INode::Callback &cb)
                             { return node.getTransactionHashesByPaymentId(paymentId, transactionHashes, cb); });
 
@@ -463,7 +453,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         logger(DEBUGGING) << "Get pool state request came.";
@@ -507,7 +497,7 @@ namespace CryptoNote
     {
         if (state.load() != INITIALIZED)
         {
-            throw std::system_error(make_error_code(CryptoNote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
+            throw std::system_error(make_error_code(cryptonote::error::BlockchainExplorerErrorCodes::NOT_INITIALIZED));
         }
 
         logger(DEBUGGING) << "Synchronization status request came.";
@@ -631,7 +621,7 @@ namespace CryptoNote
                                                                   }
                                                               }
 
-                                                              for (const std::pair<Crypto::Hash, TransactionRemoveReason> &kv : *removedTransactionsHashesPtr)
+                                                              for (const std::pair<crypto::Hash, TransactionRemoveReason> &kv : *removedTransactionsHashesPtr)
                                                               {
                                                                   auto iter = knownPoolState.find(kv.first);
                                                                   if (iter != knownPoolState.end())

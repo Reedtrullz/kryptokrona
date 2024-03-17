@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -58,7 +59,7 @@ namespace Constants
 
     /* Handy if we don't want to use a secret key (for example, for view wallets)
        and want to make it explicit that this is uninitialized. */
-    const Crypto::SecretKey BLANK_SECRET_KEY = Crypto::SecretKey({
+    const crypto::SecretKey BLANK_SECRET_KEY = crypto::SecretKey({
         0,
         0,
         0,

@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,43 +9,43 @@
 
 #include <unordered_map>
 
-#include "common/JsonValue.h"
+#include "common/json_value.h"
 #include "json_rpc_server/json_rpc_server.h"
 #include "payment_service_json_rpc_messages.h"
 #include "serialization/json_input_value_serializer.h"
 #include "serialization/json_output_stream_serializer.h"
 
-namespace PaymentService
+namespace payment_service
 {
 
     class WalletService;
 
-    class PaymentServiceJsonRpcServer : public CryptoNote::JsonRpcServer
+    class PaymentServiceJsonRpcServer : public cryptonote::JsonRpcServer
     {
     public:
-        PaymentServiceJsonRpcServer(System::Dispatcher &sys, System::Event &stopEvent, WalletService &service, std::shared_ptr<Logging::ILogger> loggerGroup, PaymentService::ConfigurationManager &config);
+        PaymentServiceJsonRpcServer(syst::Dispatcher &sys, syst::Event &stopEvent, WalletService &service, std::shared_ptr<logging::ILogger> loggerGroup, payment_service::ConfigurationManager &config);
         PaymentServiceJsonRpcServer(const PaymentServiceJsonRpcServer &) = delete;
 
     protected:
-        virtual void processJsonRpcRequest(const Common::JsonValue &req, Common::JsonValue &resp) override;
+        virtual void processJsonRpcRequest(const common::JsonValue &req, common::JsonValue &resp) override;
 
     private:
         WalletService &service;
-        Logging::LoggerRef logger;
+        logging::LoggerRef logger;
 
-        typedef std::function<void(const Common::JsonValue &jsonRpcParams, Common::JsonValue &jsonResponse)> HandlerFunction;
+        typedef std::function<void(const common::JsonValue &jsonRpcParams, common::JsonValue &jsonResponse)> HandlerFunction;
 
         template <typename RequestType, typename ResponseType, typename RequestHandler>
         HandlerFunction jsonHandler(RequestHandler handler)
         {
-            return [handler, this](const Common::JsonValue &jsonRpcParams, Common::JsonValue &jsonResponse) mutable
+            return [handler, this](const common::JsonValue &jsonRpcParams, common::JsonValue &jsonResponse) mutable
             {
                 RequestType request;
                 ResponseType response;
 
                 try
                 {
-                    CryptoNote::JsonInputValueSerializer inputSerializer(const_cast<Common::JsonValue &>(jsonRpcParams));
+                    cryptonote::JsonInputValueSerializer inputSerializer(const_cast<common::JsonValue &>(jsonRpcParams));
                     SerializeRequest(request, inputSerializer);
                 }
                 catch (std::exception &)
@@ -60,29 +61,29 @@ namespace PaymentService
                     return;
                 }
 
-                CryptoNote::JsonOutputStreamSerializer outputSerializer;
+                cryptonote::JsonOutputStreamSerializer outputSerializer;
                 serialize(response, outputSerializer);
                 fillJsonResponse(outputSerializer.getValue(), jsonResponse);
             };
         }
 
         template <typename RequestType>
-        void SerializeRequest(RequestType &request, CryptoNote::JsonInputValueSerializer &inputSerializer)
+        void SerializeRequest(RequestType &request, cryptonote::JsonInputValueSerializer &inputSerializer)
         {
             serialize(request, inputSerializer);
         }
 
-        void SerializeRequest(SendTransaction::Request &request, CryptoNote::JsonInputValueSerializer &inputSerializer)
+        void SerializeRequest(SendTransaction::Request &request, cryptonote::JsonInputValueSerializer &inputSerializer)
         {
             request.serialize(inputSerializer, service);
         }
 
-        void SerializeRequest(CreateDelayedTransaction::Request &request, CryptoNote::JsonInputValueSerializer &inputSerializer)
+        void SerializeRequest(CreateDelayedTransaction::Request &request, cryptonote::JsonInputValueSerializer &inputSerializer)
         {
             request.serialize(inputSerializer, service);
         }
 
-        void SerializeRequest(SendFusionTransaction::Request &request, CryptoNote::JsonInputValueSerializer &inputSerializer)
+        void SerializeRequest(SendFusionTransaction::Request &request, cryptonote::JsonInputValueSerializer &inputSerializer)
         {
             request.serialize(inputSerializer, service);
         }
@@ -118,4 +119,4 @@ namespace PaymentService
         std::error_code handleNodeFeeInfo(const NodeFeeInfo::Request &request, NodeFeeInfo::Response &response);
     };
 
-} // namespace PaymentService
+} // namespace payment_service

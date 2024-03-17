@@ -6,10 +6,13 @@ Public domain.
 
 #include <memory.h>
 #include <stdio.h>
-#include <syst/param.h>
+
+#if !defined(_WIN32)
+#include <sys/param.h>
+#endif
 
 #include "chacha8.h"
-#include "common/int-util.h"
+#include "common/int_util.h"
 
 /*
  * The following macros are used to obtain exact-width results.
@@ -41,7 +44,7 @@ Public domain.
 
 static const char sigma[] = "expand 32-byte k";
 
-namespace Crypto
+namespace crypto
 {
 
     void chacha8(const void *data, size_t length, const uint8_t *key, const uint8_t *iv, char *cipher)
@@ -180,4 +183,4 @@ namespace Crypto
         }
     }
 
-} // namespace Crypto
+} // namespace crypto

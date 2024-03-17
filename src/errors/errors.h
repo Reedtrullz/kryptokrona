@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -61,7 +62,7 @@ enum ErrorCode
     ADDRESS_WRONG_LENGTH = 12,
 
     /* The address does not have the correct prefix, e.g. does not begin with
-       TRTL (or whatever is specified in WalletConfig::addressPrefix) */
+       TRTL (or whatever is specified in wallet_config::addressPrefix) */
     ADDRESS_WRONG_PREFIX = 13,
 
     /* The address is not fully comprised of base58 characters */
@@ -73,7 +74,7 @@ enum ErrorCode
     /* The payment ID encoded in the integrated address is not valid */
     INTEGRATED_ADDRESS_PAYMENT_ID_INVALID = 16,
 
-    /* The fee given is lower than the CryptoNote::parameters::MINIMUM_FEE */
+    /* The fee given is lower than the cryptonote::parameters::MINIMUM_FEE */
     FEE_TOO_SMALL = 17,
 
     /* The destinations array is empty */

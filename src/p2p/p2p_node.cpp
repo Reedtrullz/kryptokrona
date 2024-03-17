@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -18,8 +19,8 @@
 
 #include <config/cryptonote_config.h>
 #include <crypto/random.h>
-#include "common/StdInputStream.h"
-#include "common/StdOutputStream.h"
+#include "common/std_input_stream.h"
+#include "common/std_output_stream.h"
 #include "serialization/binary_input_stream_serializer.h"
 #include "serialization/binary_output_stream_serializer.h"
 
@@ -28,11 +29,11 @@
 #include "p2p_context.h"
 #include "p2p_context_owner.h"
 
-using namespace Common;
-using namespace Logging;
-using namespace System;
+using namespace common;
+using namespace logging;
+using namespace syst;
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     namespace
@@ -73,7 +74,7 @@ namespace CryptoNote
                     return 0;
                 }
 
-                size_t x = Random::randomValue<size_t>() % (maxIndex + 1);
+                size_t x = rnd::randomValue<size_t>() % (maxIndex + 1);
                 return (x * x * x) / (maxIndex * maxIndex);
             }
 
@@ -91,17 +92,17 @@ namespace CryptoNote
             return remoteAddress;
         }
 
-        void doWithTimeoutAndThrow(System::Dispatcher &dispatcher, std::chrono::nanoseconds timeout, std::function<void()> f)
+        void doWithTimeoutAndThrow(syst::Dispatcher &dispatcher, std::chrono::nanoseconds timeout, std::function<void()> f)
         {
             std::string result;
-            System::ContextGroup cg(dispatcher);
-            System::ContextGroupTimeout cgTimeout(dispatcher, cg, timeout);
+            syst::ContextGroup cg(dispatcher);
+            syst::ContextGroupTimeout cgTimeout(dispatcher, cg, timeout);
 
             cg.spawn([&]
                      {
     try {
       f();
-    } catch (System::InterruptedException&) {
+    } catch (syst::InterruptedException&) {
       result = "Operation timeout";
     } catch (std::exception& e) {
       result = e.what();
@@ -117,7 +118,7 @@ namespace CryptoNote
 
     }
 
-    P2pNode::P2pNode(const P2pNodeConfig &cfg, Dispatcher &dispatcher, std::shared_ptr<Logging::ILogger> log, const Crypto::Hash &genesisHash, uint64_t peerId) : logger(log, "P2pNode:" + std::to_string(cfg.getBindPort())),
+    P2pNode::P2pNode(const P2pNodeConfig &cfg, Dispatcher &dispatcher, std::shared_ptr<logging::ILogger> log, const crypto::Hash &genesisHash, uint64_t peerId) : logger(log, "P2pNode:" + std::to_string(cfg.getBindPort())),
                                                                                                                                                                   m_stopRequested(false),
                                                                                                                                                                   m_cfg(cfg),
                                                                                                                                                                   m_myPeerId(peerId),
@@ -180,14 +181,14 @@ namespace CryptoNote
     {
         StdOutputStream stream(os);
         BinaryOutputStreamSerializer a(stream);
-        CryptoNote::serialize(*this, a);
+        cryptonote::serialize(*this, a);
     }
 
     void P2pNode::load(std::istream &in)
     {
         StdInputStream stream(in);
         BinaryInputStreamSerializer a(stream);
-        CryptoNote::serialize(*this, a);
+        cryptonote::serialize(*this, a);
     }
 
     void P2pNode::acceptLoop()
@@ -319,7 +320,7 @@ namespace CryptoNote
                 continue;
             }
 
-            logger(DEBUGGING) << "Selected peer: [" << peer.id << " " << peer.adr << "] last_seen: " << (peer.last_seen ? Common::timeIntervalToString(time(NULL) - peer.last_seen) : "never");
+            logger(DEBUGGING) << "Selected peer: [" << peer.id << " " << peer.adr << "] last_seen: " << (peer.last_seen ? common::timeIntervalToString(time(NULL) - peer.last_seen) : "never");
 
             auto conn = tryToConnectPeer(peer.adr);
             if (conn.get())
@@ -408,7 +409,7 @@ namespace CryptoNote
 
             doWithTimeoutAndThrow(m_dispatcher, m_cfg.getConnectTimeout(), [&]
                                   { tcpConnection = connector.connect(
-                                        Ipv4Address(Common::ipAddressToString(address.ip)),
+                                        Ipv4Address(common::ipAddressToString(address.ip)),
                                         static_cast<uint16_t>(address.port)); });
 
             logger(DEBUGGING) << "connection established to " << address;
@@ -456,15 +457,15 @@ namespace CryptoNote
                 return false;
             }
 
-            if (response.node_data.version < CryptoNote::P2P_MINIMUM_VERSION)
+            if (response.node_data.version < cryptonote::P2P_MINIMUM_VERSION)
             {
                 logger(DEBUGGING) << *connection << "COMMAND_HANDSHAKE Failed, peer is wrong version: " << std::to_string(response.node_data.version);
                 return false;
             }
-            else if ((response.node_data.version - CryptoNote::P2P_CURRENT_VERSION) >= CryptoNote::P2P_UPGRADE_WINDOW)
+            else if ((response.node_data.version - cryptonote::P2P_CURRENT_VERSION) >= cryptonote::P2P_UPGRADE_WINDOW)
             {
                 logger(WARNING) << *connection << "COMMAND_HANDSHAKE Warning, your software may be out of date. Please visit: "
-                                << CryptoNote::LATEST_VERSION_URL << " for the latest version.";
+                                << cryptonote::LATEST_VERSION_URL << " for the latest version.";
             }
 
             return handleRemotePeerList(response.local_peerlist, response.node_data.local_time);
@@ -521,7 +522,7 @@ namespace CryptoNote
     {
         basic_node_data nodeData;
         nodeData.network_id = m_cfg.getNetworkId();
-        nodeData.version = CryptoNote::P2P_CURRENT_VERSION;
+        nodeData.version = cryptonote::P2P_CURRENT_VERSION;
         nodeData.local_time = time(nullptr);
         nodeData.peer_id = m_myPeerId;
 
@@ -591,7 +592,7 @@ namespace CryptoNote
             TcpConnection connection;
 
             doWithTimeoutAndThrow(m_dispatcher, m_cfg.getConnectTimeout(), [&]
-                                  { connection = connector.connect(Ipv4Address(Common::ipAddressToString(peerAddress.ip)), static_cast<uint16_t>(peerAddress.port)); });
+                                  { connection = connector.connect(Ipv4Address(common::ipAddressToString(peerAddress.ip)), static_cast<uint16_t>(peerAddress.port)); });
 
             doWithTimeoutAndThrow(m_dispatcher, m_cfg.getHandshakeTimeout(), [&]
                                   {
@@ -607,7 +608,7 @@ namespace CryptoNote
         entry.last_seen = time(nullptr);
         m_peerlist.append_with_peer_white(entry);
       } else {
-        logger(Logging::DEBUGGING) << ctx << "back ping invoke wrong response \"" << response.status << "\" from"
+        logger(logging::DEBUGGING) << ctx << "back ping invoke wrong response \"" << response.status << "\" from"
           << peerAddress << ", expected peerId=" << ctx.getPeerId() << ", got " << response.peer_id;
       } });
         }
@@ -626,7 +627,7 @@ namespace CryptoNote
             throw std::runtime_error(msg.str());
         }
 
-        if (node.version < CryptoNote::P2P_MINIMUM_VERSION)
+        if (node.version < cryptonote::P2P_MINIMUM_VERSION)
         {
             std::ostringstream msg;
             msg << context << "COMMAND_HANDSHAKE Failed, peer is wrong version! (" << std::to_string(node.version) << ")";

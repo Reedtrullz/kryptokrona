@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -14,9 +15,9 @@
 #include <syst/event.h>
 #include <syst/remote_context.h>
 
-#include "CryptoNote.h"
+#include "cryptonote.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     struct BlockMiningParameters
@@ -28,7 +29,7 @@ namespace CryptoNote
     class Miner
     {
     public:
-        Miner(System::Dispatcher &dispatcher);
+        Miner(syst::Dispatcher &dispatcher);
 
         BlockTemplate mine(const BlockMiningParameters &blockMiningParameters, size_t threadCount);
         uint64_t getHashCount();
@@ -37,8 +38,8 @@ namespace CryptoNote
         void stop();
 
     private:
-        System::Dispatcher &m_dispatcher;
-        System::Event m_miningStopped;
+        syst::Dispatcher &m_dispatcher;
+        syst::Event m_miningStopped;
 
         enum class MiningState : uint8_t
         {
@@ -48,7 +49,7 @@ namespace CryptoNote
         };
         std::atomic<MiningState> m_state;
 
-        std::vector<std::unique_ptr<System::RemoteContext<void>>> m_workers;
+        std::vector<std::unique_ptr<syst::RemoteContext<void>>> m_workers;
 
         BlockTemplate m_block;
         std::atomic<uint64_t> m_hash_count = 0;
@@ -60,4 +61,4 @@ namespace CryptoNote
         void incrementHashCount();
     };
 
-} // namespace CryptoNote
+} // namespace cryptonote

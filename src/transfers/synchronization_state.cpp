@@ -1,31 +1,21 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "synchronization_state.h"
 
-#include "common/StdInputStream.h"
-#include "common/StdOutputStream.h"
+#include "common/std_input_stream.h"
+#include "common/std_output_stream.h"
 #include "serialization/binary_input_stream_serializer.h"
 #include "serialization/binary_output_stream_serializer.h"
-#include "CryptoNoteCore/CryptoNoteSerialization.h"
+#include "cryptonote_core/cryptonote_serialization.h"
 
-using namespace Common;
+using namespace common;
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     SynchronizationState::ShortHistory SynchronizationState::getShortHistory(uint32_t localHeight) const
@@ -106,7 +96,7 @@ namespace CryptoNote
         m_blockchain.resize(height);
     }
 
-    void SynchronizationState::addBlocks(const Crypto::Hash *blockHashes, uint32_t height, uint32_t count)
+    void SynchronizationState::addBlocks(const crypto::Hash *blockHashes, uint32_t height, uint32_t count)
     {
         assert(blockHashes);
         auto size = m_blockchain.size();
@@ -125,7 +115,7 @@ namespace CryptoNote
         return static_cast<uint32_t>(m_blockchain.size());
     }
 
-    const std::vector<Crypto::Hash> &SynchronizationState::getKnownBlockHashes() const
+    const std::vector<crypto::Hash> &SynchronizationState::getKnownBlockHashes() const
     {
         return m_blockchain;
     }
@@ -133,18 +123,18 @@ namespace CryptoNote
     void SynchronizationState::save(std::ostream &os)
     {
         StdOutputStream stream(os);
-        CryptoNote::BinaryOutputStreamSerializer s(stream);
+        cryptonote::BinaryOutputStreamSerializer s(stream);
         serialize(s, "state");
     }
 
     void SynchronizationState::load(std::istream &in)
     {
         StdInputStream stream(in);
-        CryptoNote::BinaryInputStreamSerializer s(stream);
+        cryptonote::BinaryInputStreamSerializer s(stream);
         serialize(s, "state");
     }
 
-    CryptoNote::ISerializer &SynchronizationState::serialize(CryptoNote::ISerializer &s, const std::string &name)
+    cryptonote::ISerializer &SynchronizationState::serialize(cryptonote::ISerializer &s, const std::string &name)
     {
         s.beginObject(name);
         s(m_blockchain, "blockchain");

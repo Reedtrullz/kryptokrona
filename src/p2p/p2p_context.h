@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
@@ -32,7 +22,7 @@
 #include "p2p_protocol_definitions.h"
 #include "p2p_protocol_types.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class P2pContext
@@ -57,7 +47,7 @@ namespace CryptoNote
             size_t size() const;
         };
 
-        P2pContext(System::Dispatcher &dispatcher, System::TcpConnection &&conn,
+        P2pContext(syst::Dispatcher &dispatcher, syst::TcpConnection &&conn,
                    bool isIncoming, const NetworkAddress &remoteAddress, std::chrono::nanoseconds timedSyncInterval, const CORE_SYNC_DATA &timedSyncData);
         ~P2pContext();
 
@@ -80,8 +70,8 @@ namespace CryptoNote
         uint64_t peerId = 0;
         uint16_t peerPort = 0;
 
-        System::Dispatcher &dispatcher;
-        System::ContextGroup contextGroup;
+        syst::Dispatcher &dispatcher;
+        syst::ContextGroup contextGroup;
         const TimePoint timeStarted;
         bool stopped = false;
         TimePoint lastReadTime;
@@ -89,12 +79,12 @@ namespace CryptoNote
         // timed sync info
         const std::chrono::nanoseconds timedSyncInterval;
         const CORE_SYNC_DATA &timedSyncData;
-        System::Timer timedSyncTimer;
-        System::Event timedSyncFinished;
+        syst::Timer timedSyncTimer;
+        syst::Event timedSyncFinished;
 
-        System::TcpConnection connection;
-        System::Event writeEvent;
-        System::Event readEvent;
+        syst::TcpConnection connection;
+        syst::Event writeEvent;
+        syst::Event readEvent;
 
         void timedSyncLoop();
     };

@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -22,31 +23,31 @@ public:
 
     bool init(int argc, char **argv);
 
-    const PaymentService::ConfigurationManager &getConfig() const { return config; }
-    PaymentService::WalletConfiguration getWalletConfig() const;
-    const CryptoNote::Currency getCurrency();
+    const payment_service::ConfigurationManager &getConfig() const { return config; }
+    payment_service::WalletConfiguration getWalletConfig() const;
+    const cryptonote::Currency getCurrency();
 
     void run();
     void stop();
 
-    std::shared_ptr<Logging::ILogger> getLogger() { return logger; }
+    std::shared_ptr<logging::ILogger> getLogger() { return logger; }
 
 private:
-    void runInProcess(Logging::LoggerRef &log);
-    void runRpcProxy(Logging::LoggerRef &log);
+    void runInProcess(logging::LoggerRef &log);
+    void runRpcProxy(logging::LoggerRef &log);
 
-    void runWalletService(const CryptoNote::Currency &currency, CryptoNote::INode &node);
+    void runWalletService(const cryptonote::Currency &currency, cryptonote::INode &node);
 
-    System::Dispatcher *dispatcher;
-    System::Event *stopEvent;
-    PaymentService::ConfigurationManager config;
-    PaymentService::WalletService *service;
+    syst::Dispatcher *dispatcher;
+    syst::Event *stopEvent;
+    payment_service::ConfigurationManager config;
+    payment_service::WalletService *service;
 
-    std::shared_ptr<Logging::LoggerGroup> logger = std::make_shared<Logging::LoggerGroup>();
+    std::shared_ptr<logging::LoggerGroup> logger = std::make_shared<logging::LoggerGroup>();
 
-    std::shared_ptr<CryptoNote::CurrencyBuilder> currencyBuilder;
+    std::shared_ptr<cryptonote::CurrencyBuilder> currencyBuilder;
 
     std::ofstream fileStream;
-    Logging::StreamLogger fileLogger;
-    Logging::ConsoleLogger consoleLogger;
+    logging::StreamLogger fileLogger;
+    logging::ConsoleLogger consoleLogger;
 };

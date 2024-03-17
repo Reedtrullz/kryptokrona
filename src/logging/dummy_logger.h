@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -6,7 +7,7 @@
 
 #include <logging/ilogger.h>
 
-namespace Logging
+namespace logging
 {
 
     class DummyLogger : public ILogger
@@ -20,4 +21,4 @@ namespace Logging
         }
     };
 
-} // namespace Logging
+} // namespace logging

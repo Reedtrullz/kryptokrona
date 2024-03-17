@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,20 +9,20 @@
 #include <iostream>
 #include <fstream>
 
-#include <CryptoTypes.h>
+#include <crypto_types.h>
 #include <config/cli_header.h>
 #include <config/cryptonote_config.h>
 
-#include "common/Util.h"
+#include "common/util.h"
 #include "crypto/hash.h"
 #include "logging/ilogger.h"
 
-namespace PaymentService
+namespace payment_service
 {
 
     ConfigurationManager::ConfigurationManager()
     {
-        rpcSecret = Crypto::Hash();
+        rpcSecret = crypto::Hash();
     }
 
     bool ConfigurationManager::init(int argc, char **argv)
@@ -75,7 +76,7 @@ namespace PaymentService
 
         if (serviceConfig.dumpConfig)
         {
-            std::cout << CryptoNote::getProjectCLIHeader() << asString(serviceConfig) << std::endl;
+            std::cout << cryptonote::getProjectCLIHeader() << asString(serviceConfig) << std::endl;
             exit(0);
         }
         else if (!serviceConfig.outputFile.empty())
@@ -83,12 +84,12 @@ namespace PaymentService
             try
             {
                 asFile(serviceConfig, serviceConfig.outputFile);
-                std::cout << CryptoNote::getProjectCLIHeader() << "Configuration saved to: " << serviceConfig.outputFile << std::endl;
+                std::cout << cryptonote::getProjectCLIHeader() << "Configuration saved to: " << serviceConfig.outputFile << std::endl;
                 exit(0);
             }
             catch (std::exception &e)
             {
-                std::cout << CryptoNote::getProjectCLIHeader() << "Could not save configuration to: " << serviceConfig.outputFile
+                std::cout << cryptonote::getProjectCLIHeader() << "Could not save configuration to: " << serviceConfig.outputFile
                           << std::endl
                           << e.what() << std::endl;
                 exit(1);
@@ -100,9 +101,9 @@ namespace PaymentService
             throw std::runtime_error("It's impossible to use both --register-service and --unregister-service at the same time");
         }
 
-        if (serviceConfig.logLevel > Logging::TRACE)
+        if (serviceConfig.logLevel > logging::TRACE)
         {
-            throw std::runtime_error("log-level must be between " + std::to_string(Logging::FATAL) + ".." + std::to_string(Logging::TRACE));
+            throw std::runtime_error("log-level must be between " + std::to_string(logging::FATAL) + ".." + std::to_string(logging::TRACE));
         }
 
         if (serviceConfig.containerFile.empty())
@@ -158,7 +159,7 @@ namespace PaymentService
         if (!serviceConfig.rpcPassword.empty())
         {
             std::vector<uint8_t> rawData(serviceConfig.rpcPassword.begin(), serviceConfig.rpcPassword.end());
-            Crypto::cn_slow_hash_v0(rawData.data(), rawData.size(), rpcSecret);
+            crypto::cn_slow_hash_v0(rawData.data(), rawData.size(), rpcSecret);
             serviceConfig.rpcPassword = "";
         }
 

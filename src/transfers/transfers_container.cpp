@@ -1,38 +1,28 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
-#include "IWallet.h"
+#include "iwallet.h"
 #include "transfers_container.h"
-#include "common/StdInputStream.h"
-#include "common/StdOutputStream.h"
-#include "CryptoNoteCore/CryptoNoteBasicImpl.h"
-#include "CryptoNoteCore/CryptoNoteFormatUtils.h"
+#include "common/std_input_stream.h"
+#include "common/std_output_stream.h"
+#include "cryptonote_core/cryptonote_basic_impl.h"
+#include "cryptonote_core/cryptonote_format_utils.h"
 #include "serialization/binary_input_stream_serializer.h"
 #include "serialization/binary_output_stream_serializer.h"
 #include "serialization/serialization_overloads.h"
 
-using namespace Common;
-using namespace Crypto;
-using namespace Logging;
+using namespace common;
+using namespace crypto;
+using namespace logging;
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    void serialize(TransactionInformation &ti, CryptoNote::ISerializer &s)
+    void serialize(TransactionInformation &ti, cryptonote::ISerializer &s)
     {
         s(ti.transactionHash, "");
         s(ti.publicKey, "");
@@ -167,7 +157,7 @@ namespace CryptoNote
         }
     }
 
-    TransfersContainer::TransfersContainer(const Currency &currency, std::shared_ptr<Logging::ILogger> logger, size_t transactionSpendableAge) : m_currentHeight(0),
+    TransfersContainer::TransfersContainer(const Currency &currency, std::shared_ptr<logging::ILogger> logger, size_t transactionSpendableAge) : m_currentHeight(0),
                                                                                                                                                  m_currency(currency),
                                                                                                                                                  m_logger(logger, "TransfersContainer"),
                                                                                                                                                  m_transactionSpendableAge(transactionSpendableAge)
@@ -929,7 +919,7 @@ namespace CryptoNote
         return result;
     }
 
-    void TransfersContainer::getUnconfirmedTransactions(std::vector<Crypto::Hash> &transactions) const
+    void TransfersContainer::getUnconfirmedTransactions(std::vector<crypto::Hash> &transactions) const
     {
         std::lock_guard<std::mutex> lk(m_mutex);
         transactions.clear();
@@ -937,7 +927,7 @@ namespace CryptoNote
         {
             if (element.blockHeight == WALLET_UNCONFIRMED_TRANSACTION_HEIGHT)
             {
-                transactions.push_back(*reinterpret_cast<const Crypto::Hash *>(&element.transactionHash));
+                transactions.push_back(*reinterpret_cast<const crypto::Hash *>(&element.transactionHash));
             }
         }
     }
@@ -946,7 +936,7 @@ namespace CryptoNote
     {
         std::lock_guard<std::mutex> lk(m_mutex);
         StdOutputStream stream(os);
-        CryptoNote::BinaryOutputStreamSerializer s(stream);
+        cryptonote::BinaryOutputStreamSerializer s(stream);
 
         s(const_cast<uint32_t &>(TRANSFERS_CONTAINER_STORAGE_VERSION), "version");
 
@@ -961,7 +951,7 @@ namespace CryptoNote
     {
         std::lock_guard<std::mutex> lk(m_mutex);
         StdInputStream stream(in);
-        CryptoNote::BinaryInputStreamSerializer s(stream);
+        cryptonote::BinaryInputStreamSerializer s(stream);
 
         uint32_t version = 0;
         s(version, "version");

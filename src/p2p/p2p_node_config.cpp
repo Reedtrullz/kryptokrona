@@ -1,25 +1,15 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "p2p_node_config.h"
 
 #include <config/cryptonote_config.h>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     namespace
@@ -35,7 +25,7 @@ namespace CryptoNote
                                      handshakeTimeout(std::chrono::milliseconds(P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT)),
                                      connectInterval(P2P_DEFAULT_CONNECT_INTERVAL),
                                      connectTimeout(std::chrono::milliseconds(P2P_DEFAULT_CONNECTION_TIMEOUT)),
-                                     networkId(CryptoNote::CRYPTONOTE_NETWORK),
+                                     networkId(cryptonote::CRYPTONOTE_NETWORK),
                                      expectedOutgoingConnectionsCount(P2P_DEFAULT_CONNECTIONS_COUNT),
                                      whiteListConnectionsPercent(P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT),
                                      peerListConnectRange(P2P_DEFAULT_CONNECT_RANGE),

@@ -1,7 +1,8 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2016-2018, The Karbowanec developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -13,11 +14,11 @@
 #include <type_traits>
 #include <vector>
 
-#include <CryptoTypes.h>
+#include <crypto_types.h>
 
 #include "hash.h"
 
-namespace Crypto
+namespace crypto
 {
 
     struct EllipticCurvePoint
@@ -81,7 +82,7 @@ namespace Crypto
             const Hash prefixHash,
             const KeyImage keyImage,
             const std::vector<PublicKey> publicKeys,
-            const Crypto::SecretKey transactionSecretKey,
+            const crypto::SecretKey transactionSecretKey,
             uint64_t realOutput);
 
         static bool checkRingSignature(

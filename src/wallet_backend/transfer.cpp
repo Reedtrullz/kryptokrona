@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -8,10 +9,10 @@
 
 #include <config/wallet_config.h>
 
-#include <CryptoNoteCore/CryptoNoteTools.h>
-#include <CryptoNoteCore/Currency.h>
-#include <CryptoNoteCore/Mixins.h>
-#include <CryptoNoteCore/TransactionExtra.h>
+#include <cryptonote_core/cryptonote_tools.h>
+#include <cryptonote_core/currency.h>
+#include <cryptonote_core/mixins.h>
+#include <cryptonote_core/transaction_extra.h>
 
 #include <errors/validate_parameters.h>
 
@@ -21,14 +22,14 @@
 
 #include <wallet_backend/wallet_backend.h>
 
-namespace SendTransaction
+namespace send_transaction
 {
 
-    std::tuple<Error, Crypto::Hash> sendFusionTransactionBasic(
+    std::tuple<Error, crypto::Hash> sendFusionTransactionBasic(
         const std::shared_ptr<Nigel> daemon,
         const std::shared_ptr<SubWallets> subWallets)
     {
-        const auto [minMixin, maxMixin, defaultMixin] = CryptoNote::Mixins::getMixinAllowableRange(
+        const auto [minMixin, maxMixin, defaultMixin] = cryptonote::Mixins::getMixinAllowableRange(
             daemon->networkBlockCount());
 
         /* Assumes the container has at least one subwallet - this is true as long
@@ -39,7 +40,7 @@ namespace SendTransaction
             defaultMixin, {}, defaultAddress, daemon, subWallets);
     }
 
-    std::tuple<Error, Crypto::Hash> sendFusionTransactionAdvanced(
+    std::tuple<Error, crypto::Hash> sendFusionTransactionAdvanced(
         const uint64_t mixin,
         const std::vector<std::string> addressesToTakeFrom,
         std::string destination,
@@ -58,14 +59,14 @@ namespace SendTransaction
 
         if (error)
         {
-            return {error, Crypto::Hash()};
+            return {error, crypto::Hash()};
         }
 
         /* If no address to take from is given, we will take from all available. */
         const bool takeFromAllSubWallets = addressesToTakeFrom.empty();
 
         /* Convert the addresses to public spend keys */
-        const std::vector<Crypto::PublicKey> subWalletsToTakeFrom = Utilities::addressesToSpendKeys(addressesToTakeFrom);
+        const std::vector<crypto::PublicKey> subWalletsToTakeFrom = utilities::addressesToSpendKeys(addressesToTakeFrom);
 
         /* Grab inputs for our fusion transaction */
         auto [ourInputs, maxFusionInputs, foundMoney] = subWallets->getFusionTransactionInputs(
@@ -74,37 +75,37 @@ namespace SendTransaction
 
         /* Mixin is too large to get enough outputs whilst remaining in the size
            and ratio constraints */
-        if (maxFusionInputs < CryptoNote::parameters::FUSION_TX_MIN_INPUT_COUNT)
+        if (maxFusionInputs < cryptonote::parameters::FUSION_TX_MIN_INPUT_COUNT)
         {
-            return {FUSION_MIXIN_TOO_LARGE, Crypto::Hash()};
+            return {FUSION_MIXIN_TOO_LARGE, crypto::Hash()};
         }
 
         /* Payment ID's are not needed with fusion transactions */
         const std::string paymentID = "";
 
-        CryptoNote::Transaction tx;
+        cryptonote::Transaction tx;
 
-        std::vector<WalletTypes::KeyOutput> transactionOutputs;
+        std::vector<wallet_types::KeyOutput> transactionOutputs;
 
-        CryptoNote::KeyPair txKeyPair;
+        cryptonote::KeyPair txKeyPair;
 
         while (true)
         {
             /* Not got enough unspent inputs for a fusion tx - we're fully optimized. */
-            if (ourInputs.size() < CryptoNote::parameters::FUSION_TX_MIN_INPUT_COUNT)
+            if (ourInputs.size() < cryptonote::parameters::FUSION_TX_MIN_INPUT_COUNT)
             {
-                return {FULLY_OPTIMIZED, Crypto::Hash()};
+                return {FULLY_OPTIMIZED, crypto::Hash()};
             }
 
             /* Grab the public keys from the receiver address */
-            const auto [publicSpendKey, publicViewKey] = Utilities::addressToKeys(destination);
+            const auto [publicSpendKey, publicViewKey] = utilities::addressToKeys(destination);
 
-            std::vector<WalletTypes::TransactionDestination> destinations;
+            std::vector<wallet_types::TransactionDestination> destinations;
 
             /* Split transfer into denominations and create an output for each */
             for (const auto denomination : splitAmountIntoDenominations(foundMoney))
             {
-                WalletTypes::TransactionDestination destination;
+                wallet_types::TransactionDestination destination;
 
                 destination.amount = denomination;
                 destination.receiverPublicSpendKey = publicSpendKey;
@@ -113,7 +114,7 @@ namespace SendTransaction
                 destinations.push_back(destination);
             }
 
-            uint64_t requiredInputOutputRatio = CryptoNote::parameters::FUSION_TX_MIN_IN_OUT_COUNT_RATIO;
+            uint64_t requiredInputOutputRatio = cryptonote::parameters::FUSION_TX_MIN_IN_OUT_COUNT_RATIO;
 
             /* We need to have at least 4x more inputs than outputs */
             if (destinations.size() == 0 || (ourInputs.size() / destinations.size()) < requiredInputOutputRatio)
@@ -140,13 +141,13 @@ namespace SendTransaction
 
             if (txResult.error)
             {
-                return {txResult.error, Crypto::Hash()};
+                return {txResult.error, crypto::Hash()};
             }
 
-            const uint64_t txSize = CryptoNote::toBinaryArray(tx).size();
+            const uint64_t txSize = cryptonote::toBinaryArray(tx).size();
 
             /* Transaction is too large, remove an input and try again */
-            if (txSize > CryptoNote::parameters::FUSION_TX_MAX_SIZE)
+            if (txSize > cryptonote::parameters::FUSION_TX_MAX_SIZE)
             {
                 /* Reduce the amount we're sending */
                 foundMoney -= ourInputs.back().input.amount;
@@ -163,12 +164,12 @@ namespace SendTransaction
 
         if (!verifyAmounts(tx))
         {
-            return {AMOUNTS_NOT_PRETTY, Crypto::Hash()};
+            return {AMOUNTS_NOT_PRETTY, crypto::Hash()};
         }
 
         if (!verifyTransactionFee(0, tx))
         {
-            return {UNEXPECTED_FEE, Crypto::Hash()};
+            return {UNEXPECTED_FEE, crypto::Hash()};
         }
 
         /* Try and send the transaction */
@@ -176,7 +177,7 @@ namespace SendTransaction
 
         if (sendError)
         {
-            return {sendError, Crypto::Hash()};
+            return {sendError, crypto::Hash()};
         }
 
         /* No fee or change with fusion */
@@ -213,7 +214,7 @@ namespace SendTransaction
 
        If you want to return change to a specific wallet, use
        sendTransactionAdvanced() */
-    std::tuple<Error, Crypto::Hash> sendTransactionBasic(
+    std::tuple<Error, crypto::Hash> sendTransactionBasic(
         std::string destination,
         const uint64_t amount,
         std::string paymentID,
@@ -223,10 +224,10 @@ namespace SendTransaction
         std::vector<std::pair<std::string, uint64_t>> destinations = {
             {destination, amount}};
 
-        const auto [minMixin, maxMixin, defaultMixin] = CryptoNote::Mixins::getMixinAllowableRange(
+        const auto [minMixin, maxMixin, defaultMixin] = cryptonote::Mixins::getMixinAllowableRange(
             daemon->networkBlockCount());
 
-        const uint64_t fee = WalletConfig::defaultFee;
+        const uint64_t fee = wallet_config::defaultFee;
 
         /* Assumes the container has at least one subwallet - this is true as long
            as the static constructors were used */
@@ -239,7 +240,7 @@ namespace SendTransaction
             subWallets, unlockTime);
     }
 
-    std::tuple<Error, Crypto::Hash> sendTransactionAdvanced(
+    std::tuple<Error, crypto::Hash> sendTransactionAdvanced(
         std::vector<std::pair<std::string, uint64_t>> addressesAndAmounts,
         const uint64_t mixin,
         const uint64_t fee,
@@ -270,7 +271,7 @@ namespace SendTransaction
 
         if (error)
         {
-            return {error, Crypto::Hash()};
+            return {error, crypto::Hash()};
         }
 
         /* Convert integrated addresses to standard address + paymentID, if
@@ -278,12 +279,12 @@ namespace SendTransaction
            in validateTransaction(), and the paymentID's do not conflict. */
         for (auto &[address, amount] : addressesAndAmounts)
         {
-            if (address.length() != WalletConfig::integratedAddressLength)
+            if (address.length() != wallet_config::integratedAddressLength)
             {
                 continue;
             }
 
-            auto [extractedAddress, extractedPaymentID] = Utilities::extractIntegratedAddressData(address);
+            auto [extractedAddress, extractedPaymentID] = utilities::extractIntegratedAddressData(address);
 
             address = extractedAddress;
             paymentID = extractedPaymentID;
@@ -293,10 +294,10 @@ namespace SendTransaction
         const bool takeFromAllSubWallets = addressesToTakeFrom.empty();
 
         /* The total amount we are sending */
-        const uint64_t totalAmount = Utilities::getTransactionSum(addressesAndAmounts) + fee;
+        const uint64_t totalAmount = utilities::getTransactionSum(addressesAndAmounts) + fee;
 
         /* Convert the addresses to public spend keys */
-        const std::vector<Crypto::PublicKey> subWalletsToTakeFrom = Utilities::addressesToSpendKeys(addressesToTakeFrom);
+        const std::vector<crypto::PublicKey> subWalletsToTakeFrom = utilities::addressesToSpendKeys(addressesToTakeFrom);
 
         /* The transaction 'inputs' - key images we have previously received, plus
            their sum. The sumOfInputs is sometimes (most of the time) greater than
@@ -320,7 +321,7 @@ namespace SendTransaction
 
         if (txResult.error)
         {
-            return {txResult.error, Crypto::Hash()};
+            return {txResult.error, crypto::Hash()};
         }
 
         error = isTransactionPayloadTooBig(
@@ -328,17 +329,17 @@ namespace SendTransaction
 
         if (error)
         {
-            return {error, Crypto::Hash()};
+            return {error, crypto::Hash()};
         }
 
         if (!verifyAmounts(txResult.transaction))
         {
-            return {AMOUNTS_NOT_PRETTY, Crypto::Hash()};
+            return {AMOUNTS_NOT_PRETTY, crypto::Hash()};
         }
 
         if (!verifyTransactionFee(fee, txResult.transaction))
         {
-            return {UNEXPECTED_FEE, Crypto::Hash()};
+            return {UNEXPECTED_FEE, crypto::Hash()};
         }
 
         const auto [sendError, txHash] = relayTransaction(
@@ -346,7 +347,7 @@ namespace SendTransaction
 
         if (sendError)
         {
-            return {sendError, Crypto::Hash()};
+            return {sendError, crypto::Hash()};
         }
 
         /* Store the unconfirmed transaction, update our balance */
@@ -371,21 +372,21 @@ namespace SendTransaction
     }
 
     Error isTransactionPayloadTooBig(
-        const CryptoNote::Transaction tx,
+        const cryptonote::Transaction tx,
         const uint64_t currentHeight)
     {
-        const uint64_t txSize = CryptoNote::toBinaryArray(tx).size();
+        const uint64_t txSize = cryptonote::toBinaryArray(tx).size();
 
-        const uint64_t maxTxSize = Utilities::getMaxTxSize(currentHeight);
+        const uint64_t maxTxSize = utilities::getMaxTxSize(currentHeight);
 
         if (txSize > maxTxSize)
         {
             std::stringstream errorMsg;
 
             errorMsg << "Transaction is too large: ("
-                     << Utilities::prettyPrintBytes(txSize)
+                     << utilities::prettyPrintBytes(txSize)
                      << "). Max allowed size is "
-                     << Utilities::prettyPrintBytes(maxTxSize)
+                     << utilities::prettyPrintBytes(maxTxSize)
                      << ". Decrease the amount you are sending, or perform some "
                      << "fusion transactions.";
 
@@ -401,23 +402,23 @@ namespace SendTransaction
        but I think it would make the code harder to follow */
     void storeUnconfirmedIncomingInputs(
         const std::shared_ptr<SubWallets> subWallets,
-        const std::vector<WalletTypes::KeyOutput> keyOutputs,
-        const Crypto::PublicKey txPublicKey,
-        const Crypto::Hash txHash)
+        const std::vector<wallet_types::KeyOutput> keyOutputs,
+        const crypto::PublicKey txPublicKey,
+        const crypto::Hash txHash)
     {
-        Crypto::KeyDerivation derivation;
+        crypto::KeyDerivation derivation;
 
-        Crypto::generate_key_derivation(
+        crypto::generate_key_derivation(
             txPublicKey, subWallets->getPrivateViewKey(), derivation);
 
         uint64_t outputIndex = 0;
 
         for (const auto output : keyOutputs)
         {
-            Crypto::PublicKey spendKey;
+            crypto::PublicKey spendKey;
 
             /* Not our output */
-            Crypto::underive_public_key(derivation, outputIndex, output.key, spendKey);
+            crypto::underive_public_key(derivation, outputIndex, output.key, spendKey);
 
             const auto spendKeys = subWallets->m_publicSpendKeys;
 
@@ -426,9 +427,9 @@ namespace SendTransaction
 
             if (it != spendKeys.end())
             {
-                Crypto::PublicKey ourSpendKey = *it;
+                crypto::PublicKey ourSpendKey = *it;
 
-                WalletTypes::UnconfirmedInput input;
+                wallet_types::UnconfirmedInput input;
 
                 input.amount = keyOutputs[outputIndex].amount;
                 input.key = keyOutputs[outputIndex].key;
@@ -442,15 +443,15 @@ namespace SendTransaction
     }
 
     void storeSentTransaction(
-        const Crypto::Hash hash,
+        const crypto::Hash hash,
         const uint64_t fee,
         const std::string paymentID,
-        const std::vector<WalletTypes::TxInputAndOwner> ourInputs,
+        const std::vector<wallet_types::TxInputAndOwner> ourInputs,
         const std::string changeAddress,
         const uint64_t changeRequired,
         const std::shared_ptr<SubWallets> subWallets)
     {
-        std::unordered_map<Crypto::PublicKey, int64_t> transfers;
+        std::unordered_map<crypto::PublicKey, int64_t> transfers;
 
         /* Loop through each input, and minus that from the transfers array */
         for (const auto input : ourInputs)
@@ -459,7 +460,7 @@ namespace SendTransaction
         }
 
         /* Grab the subwallet the change address points to */
-        const auto [spendKey, viewKey] = Utilities::addressToKeys(changeAddress);
+        const auto [spendKey, viewKey] = utilities::addressToKeys(changeAddress);
 
         /* Increment the change address with the amount we returned to ourselves */
         if (changeRequired != 0)
@@ -474,33 +475,33 @@ namespace SendTransaction
 
         /* Create the unconfirmed transaction (Will be overwritten by the
            confirmed transaction later) */
-        WalletTypes::Transaction tx(
+        wallet_types::Transaction tx(
             transfers, hash, fee, timestamp, blockHeight, paymentID,
             unlockTime, isCoinbaseTransaction);
 
         subWallets->addUnconfirmedTransaction(tx);
     }
 
-    std::tuple<Error, Crypto::Hash> relayTransaction(
-        const CryptoNote::Transaction tx,
+    std::tuple<Error, crypto::Hash> relayTransaction(
+        const cryptonote::Transaction tx,
         const std::shared_ptr<Nigel> daemon)
     {
         const auto [success, connectionError] = daemon->sendTransaction(tx);
 
         if (connectionError)
         {
-            return {DAEMON_OFFLINE, Crypto::Hash()};
+            return {DAEMON_OFFLINE, crypto::Hash()};
         }
 
         if (!success)
         {
-            return {DAEMON_ERROR, Crypto::Hash()};
+            return {DAEMON_ERROR, crypto::Hash()};
         }
 
         return {SUCCESS, getTransactionHash(tx)};
     }
 
-    std::vector<WalletTypes::TransactionDestination> setupDestinations(
+    std::vector<wallet_types::TransactionDestination> setupDestinations(
         std::vector<std::pair<std::string, uint64_t>> addressesAndAmounts,
         const uint64_t changeRequired,
         const std::string changeAddress)
@@ -511,17 +512,17 @@ namespace SendTransaction
             addressesAndAmounts.push_back({changeAddress, changeRequired});
         }
 
-        std::vector<WalletTypes::TransactionDestination> destinations;
+        std::vector<wallet_types::TransactionDestination> destinations;
 
         for (const auto [address, amount] : addressesAndAmounts)
         {
             /* Grab the public keys from the receiver address */
-            const auto [publicSpendKey, publicViewKey] = Utilities::addressToKeys(address);
+            const auto [publicSpendKey, publicViewKey] = utilities::addressToKeys(address);
 
             /* Split transfer into denominations and create an output for each */
             for (const auto denomination : splitAmountIntoDenominations(amount))
             {
-                WalletTypes::TransactionDestination destination;
+                wallet_types::TransactionDestination destination;
 
                 destination.amount = denomination;
                 destination.receiverPublicSpendKey = publicSpendKey;
@@ -534,10 +535,10 @@ namespace SendTransaction
         return destinations;
     }
 
-    std::tuple<Error, std::vector<CryptoNote::RandomOuts>> getRingParticipants(
+    std::tuple<Error, std::vector<cryptonote::RandomOuts>> getRingParticipants(
         const uint64_t mixin,
         const std::shared_ptr<Nigel> daemon,
-        const std::vector<WalletTypes::TxInputAndOwner> sources)
+        const std::vector<wallet_types::TxInputAndOwner> sources)
     {
         /* Request one more than our mixin, then if we get our output as one of
            the mixin outs, we can skip it and still form the transaction */
@@ -576,7 +577,7 @@ namespace SendTransaction
                 std::stringstream error;
 
                 error << "Failed to get any matching outputs for amount "
-                      << amount << " (" << Utilities::formatAmount(amount)
+                      << amount << " (" << utilities::formatAmount(amount)
                       << "). Further explanation here: "
                       << "https://gist.github.com/zpalmtree/80b3e80463225bcfb8f8432043cb594c";
 
@@ -591,7 +592,7 @@ namespace SendTransaction
                 std::stringstream error;
 
                 error << "Failed to get enough matching outputs for amount "
-                      << amount << " (" << Utilities::formatAmount(amount)
+                      << amount << " (" << utilities::formatAmount(amount)
                       << "). Requested outputs: " << requestedOuts
                       << ", found outputs: " << it->outs.size()
                       << ". Further explanation here: "
@@ -621,7 +622,7 @@ namespace SendTransaction
                 std::stringstream error;
 
                 error << "Failed to get enough matching outputs for amount "
-                      << fakeOut.amount << " (" << Utilities::formatAmount(fakeOut.amount)
+                      << fakeOut.amount << " (" << utilities::formatAmount(fakeOut.amount)
                       << "). Requested outputs: " << requestedOuts
                       << ", found outputs: " << fakeOut.outs.size()
                       << ". Further explanation here: "
@@ -640,8 +641,8 @@ namespace SendTransaction
     }
 
     /* Take our inputs and pad them with fake inputs, based on our mixin value */
-    std::tuple<Error, std::vector<WalletTypes::ObscuredInput>> prepareRingParticipants(
-        std::vector<WalletTypes::TxInputAndOwner> sources,
+    std::tuple<Error, std::vector<wallet_types::ObscuredInput>> prepareRingParticipants(
+        std::vector<wallet_types::TxInputAndOwner> sources,
         const uint64_t mixin,
         const std::shared_ptr<Nigel> daemon)
     {
@@ -650,7 +651,7 @@ namespace SendTransaction
         std::sort(sources.begin(), sources.end(), [](const auto &lhs, const auto &rhs)
                   { return lhs.input.amount < rhs.input.amount; });
 
-        std::vector<WalletTypes::ObscuredInput> result;
+        std::vector<wallet_types::ObscuredInput> result;
 
         const auto [error, fakeOuts] = getRingParticipants(mixin, daemon, sources);
 
@@ -663,11 +664,11 @@ namespace SendTransaction
 
         for (const auto walletAmount : sources)
         {
-            WalletTypes::GlobalIndexKey realOutput{
+            wallet_types::GlobalIndexKey realOutput{
                 walletAmount.input.globalOutputIndex.value(),
                 walletAmount.input.key};
 
-            WalletTypes::ObscuredInput obscuredInput;
+            wallet_types::ObscuredInput obscuredInput;
 
             /* The real public key of the transaction */
             obscuredInput.realTransactionPublicKey = walletAmount.input.transactionPublicKey;
@@ -711,7 +712,7 @@ namespace SendTransaction
 
                 error << "Failed to get enough matching outputs for amount "
                       << walletAmount.input.amount << " ("
-                      << Utilities::formatAmount(walletAmount.input.amount)
+                      << utilities::formatAmount(walletAmount.input.amount)
                       << "). Requested outputs: " << mixin
                       << ", found outputs: " << obscuredInput.outputs.size()
                       << ". Further explanation here: "
@@ -744,45 +745,45 @@ namespace SendTransaction
         return {SUCCESS, result};
     }
 
-    std::tuple<CryptoNote::KeyPair, Crypto::KeyImage> genKeyImage(
-        const WalletTypes::ObscuredInput input,
-        const Crypto::SecretKey privateViewKey)
+    std::tuple<cryptonote::KeyPair, crypto::KeyImage> genKeyImage(
+        const wallet_types::ObscuredInput input,
+        const crypto::SecretKey privateViewKey)
     {
-        Crypto::KeyDerivation derivation;
+        crypto::KeyDerivation derivation;
 
         /* Derive the key from the transaction public key, and our private
            view key */
-        Crypto::generate_key_derivation(
+        crypto::generate_key_derivation(
             input.realTransactionPublicKey, privateViewKey, derivation);
 
-        CryptoNote::KeyPair tmpKeyPair;
+        cryptonote::KeyPair tmpKeyPair;
 
         /* Derive the public key of the tmp key pair */
-        Crypto::derive_public_key(
+        crypto::derive_public_key(
             derivation, input.realOutputTransactionIndex, input.ownerPublicSpendKey,
             tmpKeyPair.publicKey);
 
         /* Derive the secret key of the tmp key pair */
-        Crypto::derive_secret_key(
+        crypto::derive_secret_key(
             derivation, input.realOutputTransactionIndex, input.ownerPrivateSpendKey,
             tmpKeyPair.secretKey);
 
-        Crypto::KeyImage keyImage;
+        crypto::KeyImage keyImage;
 
         /* Generate the key image */
-        Crypto::generate_key_image(
+        crypto::generate_key_image(
             tmpKeyPair.publicKey, tmpKeyPair.secretKey, keyImage);
 
         return {tmpKeyPair, keyImage};
     }
 
-    std::tuple<Error, std::vector<CryptoNote::KeyInput>, std::vector<Crypto::SecretKey>> setupInputs(
-        const std::vector<WalletTypes::ObscuredInput> inputsAndFakes,
-        const Crypto::SecretKey privateViewKey)
+    std::tuple<Error, std::vector<cryptonote::KeyInput>, std::vector<crypto::SecretKey>> setupInputs(
+        const std::vector<wallet_types::ObscuredInput> inputsAndFakes,
+        const crypto::SecretKey privateViewKey)
     {
-        std::vector<CryptoNote::KeyInput> inputs;
+        std::vector<cryptonote::KeyInput> inputs;
 
-        std::vector<Crypto::SecretKey> tmpSecretKeys;
+        std::vector<crypto::SecretKey> tmpSecretKeys;
 
         for (const auto input : inputsAndFakes)
         {
@@ -795,7 +796,7 @@ namespace SendTransaction
 
             tmpSecretKeys.push_back(tmpKeyPair.secretKey);
 
-            CryptoNote::KeyInput keyInput;
+            cryptonote::KeyInput keyInput;
 
             keyInput.amount = input.amount;
             keyInput.keyImage = keyImage;
@@ -811,7 +812,7 @@ namespace SendTransaction
                originally had [5, 10, 20, 21, 22], this would become
                [5, 5, 10, 1, 1]. Due to this, the indexes MUST be sorted - they
                are serialized as a uint32_t, so negative values will overflow! */
-            keyInput.outputIndexes = CryptoNote::absolute_output_offsets_to_relative(keyInput.outputIndexes);
+            keyInput.outputIndexes = cryptonote::absolute_output_offsets_to_relative(keyInput.outputIndexes);
 
             /* Store the key input */
             inputs.push_back(keyInput);
@@ -820,8 +821,8 @@ namespace SendTransaction
         return {SUCCESS, inputs, tmpSecretKeys};
     }
 
-    std::tuple<std::vector<WalletTypes::KeyOutput>, CryptoNote::KeyPair> setupOutputs(
-        std::vector<WalletTypes::TransactionDestination> destinations)
+    std::tuple<std::vector<wallet_types::KeyOutput>, cryptonote::KeyPair> setupOutputs(
+        std::vector<wallet_types::TransactionDestination> destinations)
     {
         /* Sort the destinations by amount. Helps obscure which output belongs to
            which transaction */
@@ -830,28 +831,28 @@ namespace SendTransaction
 
         /* Generate a random key pair for the transaction - public key gets added
            to tx extra */
-        CryptoNote::KeyPair randomTxKey = CryptoNote::generateKeyPair();
+        cryptonote::KeyPair randomTxKey = cryptonote::generateKeyPair();
 
         /* Index of the output */
         uint32_t outputIndex = 0;
 
-        std::vector<WalletTypes::KeyOutput> outputs;
+        std::vector<wallet_types::KeyOutput> outputs;
 
         for (const auto destination : destinations)
         {
-            Crypto::KeyDerivation derivation;
+            crypto::KeyDerivation derivation;
 
             /* Generate derivation from receiver public view key and random tx key */
-            Crypto::generate_key_derivation(
+            crypto::generate_key_derivation(
                 destination.receiverPublicViewKey, randomTxKey.secretKey, derivation);
 
-            Crypto::PublicKey tmpPubKey;
+            crypto::PublicKey tmpPubKey;
 
             /* Derive the temporary public key */
-            Crypto::derive_public_key(
+            crypto::derive_public_key(
                 derivation, outputIndex, destination.receiverPublicSpendKey, tmpPubKey);
 
-            WalletTypes::KeyOutput keyOutput;
+            wallet_types::KeyOutput keyOutput;
 
             keyOutput.key = tmpPubKey;
             keyOutput.amount = destination.amount;
@@ -864,24 +865,24 @@ namespace SendTransaction
         return {outputs, randomTxKey};
     }
 
-    std::tuple<Error, CryptoNote::Transaction> generateRingSignatures(
-        CryptoNote::Transaction tx,
-        const std::vector<WalletTypes::ObscuredInput> inputsAndFakes,
-        const std::vector<Crypto::SecretKey> tmpSecretKeys)
+    std::tuple<Error, cryptonote::Transaction> generateRingSignatures(
+        cryptonote::Transaction tx,
+        const std::vector<wallet_types::ObscuredInput> inputsAndFakes,
+        const std::vector<crypto::SecretKey> tmpSecretKeys)
     {
-        Crypto::Hash txPrefixHash;
+        crypto::Hash txPrefixHash;
 
         /* Hash the transaction prefix (Prefix is just a subset of transaction, so
            we can just do a cast here) */
-        CryptoNote::getObjectHash(
-            static_cast<CryptoNote::TransactionPrefix>(tx), txPrefixHash);
+        cryptonote::getObjectHash(
+            static_cast<cryptonote::TransactionPrefix>(tx), txPrefixHash);
 
         size_t i = 0;
 
         /* Add the transaction signatures */
         for (const auto input : inputsAndFakes)
         {
-            std::vector<Crypto::PublicKey> publicKeys;
+            std::vector<crypto::PublicKey> publicKeys;
 
             /* Add all the fake outs public keys to a vector */
             for (const auto output : input.outputs)
@@ -891,8 +892,8 @@ namespace SendTransaction
 
             /* Generate the ring signatures - note - modifying the transaction
                post signature generation will invalidate the signatures. */
-            const auto [success, signatures] = Crypto::crypto_ops::generateRingSignatures(
-                txPrefixHash, boost::get<CryptoNote::KeyInput>(tx.inputs[i]).keyImage,
+            const auto [success, signatures] = crypto::crypto_ops::generateRingSignatures(
+                txPrefixHash, boost::get<cryptonote::KeyInput>(tx.inputs[i]).keyImage,
                 publicKeys, tmpSecretKeys[i], input.realOutput);
 
             if (!success)
@@ -910,16 +911,16 @@ namespace SendTransaction
 
         for (const auto input : inputsAndFakes)
         {
-            std::vector<Crypto::PublicKey> publicKeys;
+            std::vector<crypto::PublicKey> publicKeys;
 
             for (const auto output : input.outputs)
             {
                 publicKeys.push_back(output.key);
             }
 
-            if (!Crypto::crypto_ops::checkRingSignature(
+            if (!crypto::crypto_ops::checkRingSignature(
                     txPrefixHash,
-                    boost::get<CryptoNote::KeyInput>(tx.inputs[i]).keyImage,
+                    boost::get<cryptonote::KeyInput>(tx.inputs[i]).keyImage,
                     publicKeys,
                     tx.signatures[i]))
             {
@@ -959,10 +960,10 @@ namespace SendTransaction
         return splitAmounts;
     }
 
-    std::vector<CryptoNote::TransactionInput> keyInputToTransactionInput(
-        const std::vector<CryptoNote::KeyInput> keyInputs)
+    std::vector<cryptonote::TransactionInput> keyInputToTransactionInput(
+        const std::vector<cryptonote::KeyInput> keyInputs)
     {
-        std::vector<CryptoNote::TransactionInput> result;
+        std::vector<cryptonote::TransactionInput> result;
 
         for (const auto input : keyInputs)
         {
@@ -972,18 +973,18 @@ namespace SendTransaction
         return result;
     }
 
-    std::vector<CryptoNote::TransactionOutput> keyOutputToTransactionOutput(
-        const std::vector<WalletTypes::KeyOutput> keyOutputs)
+    std::vector<cryptonote::TransactionOutput> keyOutputToTransactionOutput(
+        const std::vector<wallet_types::KeyOutput> keyOutputs)
     {
-        std::vector<CryptoNote::TransactionOutput> result;
+        std::vector<cryptonote::TransactionOutput> result;
 
         for (const auto output : keyOutputs)
         {
-            CryptoNote::TransactionOutput tmpOutput;
+            cryptonote::TransactionOutput tmpOutput;
 
             tmpOutput.amount = output.amount;
 
-            CryptoNote::KeyOutput tmpKey;
+            cryptonote::KeyOutput tmpKey;
 
             tmpKey.key = output.key;
 
@@ -995,18 +996,18 @@ namespace SendTransaction
         return result;
     }
 
-    Crypto::Hash getTransactionHash(CryptoNote::Transaction tx)
+    crypto::Hash getTransactionHash(cryptonote::Transaction tx)
     {
-        std::vector<uint8_t> data = CryptoNote::toBinaryArray(tx);
-        return Crypto::cn_fast_hash(data.data(), data.size());
+        std::vector<uint8_t> data = cryptonote::toBinaryArray(tx);
+        return crypto::cn_fast_hash(data.data(), data.size());
     }
 
     TransactionResult makeTransaction(
         const uint64_t mixin,
         const std::shared_ptr<Nigel> daemon,
-        const std::vector<WalletTypes::TxInputAndOwner> ourInputs,
+        const std::vector<wallet_types::TxInputAndOwner> ourInputs,
         const std::string paymentID,
-        const std::vector<WalletTypes::TransactionDestination> destinations,
+        const std::vector<wallet_types::TransactionDestination> destinations,
         const std::shared_ptr<SubWallets> subWallets,
         const uint64_t unlockTime)
     {
@@ -1039,16 +1040,16 @@ namespace SendTransaction
 
         if (paymentID != "")
         {
-            CryptoNote::createTxExtraWithPaymentId(paymentID, extra);
+            cryptonote::createTxExtraWithPaymentId(paymentID, extra);
         }
 
         /* Append the transaction public key we generated earlier to the extra
            data */
-        CryptoNote::addTransactionPublicKeyToExtra(extra, result.txKeyPair.publicKey);
+        cryptonote::addTransactionPublicKeyToExtra(extra, result.txKeyPair.publicKey);
 
-        CryptoNote::Transaction setupTX;
+        cryptonote::Transaction setupTX;
 
-        setupTX.version = CryptoNote::CURRENT_TRANSACTION_VERSION;
+        setupTX.version = cryptonote::CURRENT_TRANSACTION_VERSION;
 
         setupTX.unlockTime = unlockTime;
 
@@ -1072,7 +1073,7 @@ namespace SendTransaction
         return result;
     }
 
-    bool verifyAmounts(const CryptoNote::Transaction tx)
+    bool verifyAmounts(const cryptonote::Transaction tx)
     {
         std::vector<uint64_t> amounts;
 
@@ -1090,7 +1091,7 @@ namespace SendTransaction
     bool verifyAmounts(const std::vector<uint64_t> amounts)
     {
         /* yeah... i don't want to type that every time */
-        const auto prettyAmounts = CryptoNote::Currency::PRETTY_AMOUNTS;
+        const auto prettyAmounts = cryptonote::Currency::PRETTY_AMOUNTS;
 
         for (const auto amount : amounts)
         {
@@ -1103,14 +1104,14 @@ namespace SendTransaction
         return true;
     }
 
-    bool verifyTransactionFee(const uint64_t expectedFee, const CryptoNote::Transaction tx)
+    bool verifyTransactionFee(const uint64_t expectedFee, const cryptonote::Transaction tx)
     {
         uint64_t inputTotal = 0;
         uint64_t outputTotal = 0;
 
         for (const auto input : tx.inputs)
         {
-            inputTotal += boost::get<CryptoNote::KeyInput>(input).amount;
+            inputTotal += boost::get<cryptonote::KeyInput>(input).amount;
         }
 
         for (const auto output : tx.outputs)
@@ -1123,4 +1124,4 @@ namespace SendTransaction
         return expectedFee == actualFee;
     }
 
-} // namespace SendTransaction
+} // namespace send_transaction

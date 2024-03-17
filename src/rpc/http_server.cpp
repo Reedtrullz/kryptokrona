@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "http_server.h"
 #include <boost/scope_exit.hpp>
@@ -23,19 +13,19 @@
 #include <syst/tcp_stream.h>
 #include <syst/ipv4_address.h>
 
-using namespace Logging;
+using namespace logging;
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    HttpServer::HttpServer(System::Dispatcher &dispatcher, std::shared_ptr<Logging::ILogger> log)
+    HttpServer::HttpServer(syst::Dispatcher &dispatcher, std::shared_ptr<logging::ILogger> log)
         : m_dispatcher(dispatcher), workingContextGroup(dispatcher), logger(log, "HttpServer")
     {
     }
 
     void HttpServer::start(const std::string &address, uint16_t port)
     {
-        m_listener = System::TcpListener(m_dispatcher, System::Ipv4Address(address), port);
+        m_listener = syst::TcpListener(m_dispatcher, syst::Ipv4Address(address), port);
         workingContextGroup.spawn(std::bind(&HttpServer::acceptLoop, this));
     }
 
@@ -49,7 +39,7 @@ namespace CryptoNote
     {
         try
         {
-            System::TcpConnection connection;
+            syst::TcpConnection connection;
             bool accepted = false;
 
             while (!accepted)
@@ -59,7 +49,7 @@ namespace CryptoNote
                     connection = m_listener.accept();
                     accepted = true;
                 }
-                catch (System::InterruptedException &)
+                catch (syst::InterruptedException &)
                 {
                     throw;
                 }
@@ -81,7 +71,7 @@ namespace CryptoNote
 
             logger(DEBUGGING) << "Incoming connection from " << addr.first.toDottedDecimal() << ":" << addr.second;
 
-            System::TcpStreambuf streambuf(connection);
+            syst::TcpStreambuf streambuf(connection);
             std::iostream stream(&streambuf);
             HttpParser parser;
 
@@ -104,7 +94,7 @@ namespace CryptoNote
 
             logger(DEBUGGING) << "Closing connection from " << addr.first.toDottedDecimal() << ":" << addr.second << " total=" << m_connections.size();
         }
-        catch (System::InterruptedException &)
+        catch (syst::InterruptedException &)
         {
         }
         catch (std::exception &e)

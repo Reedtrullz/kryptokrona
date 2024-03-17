@@ -1,29 +1,19 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "json_output_stream_serializer.h"
 #include <cassert>
 #include <stdexcept>
-#include "common/StringTools.h"
+#include "common/string_tools.h"
 
-using Common::JsonValue;
-using namespace CryptoNote;
+using common::JsonValue;
+using namespace cryptonote;
 
-namespace CryptoNote
+namespace cryptonote
 {
     std::ostream &operator<<(std::ostream &out, const JsonOutputStreamSerializer &enumerator)
     {
@@ -36,7 +26,7 @@ namespace
 {
 
     template <typename T>
-    void insertOrPush(JsonValue &js, Common::StringView name, const T &value)
+    void insertOrPush(JsonValue &js, common::StringView name, const T &value)
     {
         if (js.isArray())
         {
@@ -64,7 +54,7 @@ ISerializer::SerializerType JsonOutputStreamSerializer::type() const
     return ISerializer::OUTPUT;
 }
 
-bool JsonOutputStreamSerializer::beginObject(Common::StringView name)
+bool JsonOutputStreamSerializer::beginObject(common::StringView name)
 {
     JsonValue &parent = *chain.back();
     JsonValue obj(JsonValue::OBJECT);
@@ -87,7 +77,7 @@ void JsonOutputStreamSerializer::endObject()
     chain.pop_back();
 }
 
-bool JsonOutputStreamSerializer::beginArray(uint64_t &size, Common::StringView name)
+bool JsonOutputStreamSerializer::beginArray(uint64_t &size, common::StringView name)
 {
     JsonValue val(JsonValue::ARRAY);
     JsonValue &res = chain.back()->insert(std::string(name), val);
@@ -101,73 +91,73 @@ void JsonOutputStreamSerializer::endArray()
     chain.pop_back();
 }
 
-bool JsonOutputStreamSerializer::operator()(uint64_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(uint64_t &value, common::StringView name)
 {
     int64_t v = static_cast<int64_t>(value);
     return operator()(v, name);
 }
 
-bool JsonOutputStreamSerializer::operator()(uint16_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(uint16_t &value, common::StringView name)
 {
     uint64_t v = static_cast<uint64_t>(value);
     return operator()(v, name);
 }
 
-bool JsonOutputStreamSerializer::operator()(int16_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(int16_t &value, common::StringView name)
 {
     int64_t v = static_cast<int64_t>(value);
     return operator()(v, name);
 }
 
-bool JsonOutputStreamSerializer::operator()(uint32_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(uint32_t &value, common::StringView name)
 {
     uint64_t v = static_cast<uint64_t>(value);
     return operator()(v, name);
 }
 
-bool JsonOutputStreamSerializer::operator()(int32_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(int32_t &value, common::StringView name)
 {
     int64_t v = static_cast<int64_t>(value);
     return operator()(v, name);
 }
 
-bool JsonOutputStreamSerializer::operator()(int64_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(int64_t &value, common::StringView name)
 {
     insertOrPush(*chain.back(), name, value);
     return true;
 }
 
-bool JsonOutputStreamSerializer::operator()(double &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(double &value, common::StringView name)
 {
     insertOrPush(*chain.back(), name, value);
     return true;
 }
 
-bool JsonOutputStreamSerializer::operator()(std::string &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(std::string &value, common::StringView name)
 {
     insertOrPush(*chain.back(), name, value);
     return true;
 }
 
-bool JsonOutputStreamSerializer::operator()(uint8_t &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(uint8_t &value, common::StringView name)
 {
     insertOrPush(*chain.back(), name, static_cast<int64_t>(value));
     return true;
 }
 
-bool JsonOutputStreamSerializer::operator()(bool &value, Common::StringView name)
+bool JsonOutputStreamSerializer::operator()(bool &value, common::StringView name)
 {
     insertOrPush(*chain.back(), name, value);
     return true;
 }
 
-bool JsonOutputStreamSerializer::binary(void *value, uint64_t size, Common::StringView name)
+bool JsonOutputStreamSerializer::binary(void *value, uint64_t size, common::StringView name)
 {
-    std::string hex = Common::toHex(value, size);
+    std::string hex = common::toHex(value, size);
     return (*this)(hex, name);
 }
 
-bool JsonOutputStreamSerializer::binary(std::string &value, Common::StringView name)
+bool JsonOutputStreamSerializer::binary(std::string &value, common::StringView name)
 {
     return binary(const_cast<char *>(value.data()), value.size(), name);
 }

@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -7,7 +8,7 @@
 ////////////////////////
 
 #include <config/cryptonote_config.h>
-#include <CryptoNoteCore/CryptoNoteTools.h>
+#include <cryptonote_core/cryptonote_tools.h>
 #include <errors/validate_parameters.h>
 #include <utilities/utilities.h>
 #include <version.h>
@@ -61,8 +62,8 @@ void Nigel::swapNode(const std::string daemonHost, const uint16_t daemonPort)
     init();
 }
 
-std::tuple<bool, std::vector<WalletTypes::WalletBlockInfo>> Nigel::getWalletSyncData(
-    const std::vector<Crypto::Hash> blockHashCheckpoints,
+std::tuple<bool, std::vector<wallet_types::WalletBlockInfo>> Nigel::getWalletSyncData(
+    const std::vector<crypto::Hash> blockHashCheckpoints,
     uint64_t startHeight,
     uint64_t startTimestamp) const
 {
@@ -85,7 +86,7 @@ std::tuple<bool, std::vector<WalletTypes::WalletBlockInfo>> Nigel::getWalletSync
                 return {false, {}};
             }
 
-            const auto items = j.at("items").get<std::vector<WalletTypes::WalletBlockInfo>>();
+            const auto items = j.at("items").get<std::vector<wallet_types::WalletBlockInfo>>();
 
             return {true, items};
         }
@@ -152,7 +153,7 @@ bool Nigel::getDaemonInfo()
 
             m_peerCount = j.at("incoming_connections_count").get<uint64_t>() + j.at("outgoing_connections_count").get<uint64_t>();
 
-            m_lastKnownHashrate = j.at("difficulty").get<uint64_t>() / CryptoNote::parameters::DIFFICULTY_TARGET;
+            m_lastKnownHashrate = j.at("difficulty").get<uint64_t>() / cryptonote::parameters::DIFFICULTY_TARGET;
 
             return true;
         }
@@ -204,7 +205,7 @@ void Nigel::backgroundRefresh()
     {
         getDaemonInfo();
 
-        Utilities::sleepUnlessStopping(std::chrono::seconds(10), m_shouldStop);
+        utilities::sleepUnlessStopping(std::chrono::seconds(10), m_shouldStop);
     }
 }
 
@@ -247,10 +248,10 @@ std::tuple<std::string, uint16_t> Nigel::nodeAddress() const
 }
 
 bool Nigel::getTransactionsStatus(
-    const std::unordered_set<Crypto::Hash> transactionHashes,
-    std::unordered_set<Crypto::Hash> &transactionsInPool,
-    std::unordered_set<Crypto::Hash> &transactionsInBlock,
-    std::unordered_set<Crypto::Hash> &transactionsUnknown) const
+    const std::unordered_set<crypto::Hash> transactionHashes,
+    std::unordered_set<crypto::Hash> &transactionsInPool,
+    std::unordered_set<crypto::Hash> &transactionsInBlock,
+    std::unordered_set<crypto::Hash> &transactionsUnknown) const
 {
     json j = {
         {"transactionHashes", transactionHashes}};
@@ -269,9 +270,9 @@ bool Nigel::getTransactionsStatus(
                 return false;
             }
 
-            transactionsInPool = j.at("transactionsInPool").get<std::unordered_set<Crypto::Hash>>();
-            transactionsInBlock = j.at("transactionsInBlock").get<std::unordered_set<Crypto::Hash>>();
-            transactionsUnknown = j.at("transactionsUnknown").get<std::unordered_set<Crypto::Hash>>();
+            transactionsInPool = j.at("transactionsInPool").get<std::unordered_set<crypto::Hash>>();
+            transactionsInBlock = j.at("transactionsInBlock").get<std::unordered_set<crypto::Hash>>();
+            transactionsUnknown = j.at("transactionsUnknown").get<std::unordered_set<crypto::Hash>>();
             return true;
         }
         catch (const json::exception &)
@@ -282,7 +283,7 @@ bool Nigel::getTransactionsStatus(
     return false;
 }
 
-std::tuple<bool, std::vector<CryptoNote::RandomOuts>> Nigel::getRandomOutsByAmounts(
+std::tuple<bool, std::vector<cryptonote::RandomOuts>> Nigel::getRandomOutsByAmounts(
     const std::vector<uint64_t> amounts,
     const uint64_t requestedOuts) const
 {
@@ -304,7 +305,7 @@ std::tuple<bool, std::vector<CryptoNote::RandomOuts>> Nigel::getRandomOutsByAmou
                 return {};
             }
 
-            const auto outs = j.at("outs").get<std::vector<CryptoNote::RandomOuts>>();
+            const auto outs = j.at("outs").get<std::vector<cryptonote::RandomOuts>>();
 
             return {true, outs};
         }
@@ -317,10 +318,10 @@ std::tuple<bool, std::vector<CryptoNote::RandomOuts>> Nigel::getRandomOutsByAmou
 }
 
 std::tuple<bool, bool> Nigel::sendTransaction(
-    const CryptoNote::Transaction tx) const
+    const cryptonote::Transaction tx) const
 {
     json j = {
-        {"tx_as_hex", Common::toHex(CryptoNote::toBinaryArray(tx))}};
+        {"tx_as_hex", common::toHex(cryptonote::toBinaryArray(tx))}};
 
     const auto res = m_httpClient->Post(
         "/sendrawtransaction", j.dump(), "application/json");
@@ -346,7 +347,7 @@ std::tuple<bool, bool> Nigel::sendTransaction(
     return {success, connectionError};
 }
 
-std::tuple<bool, std::unordered_map<Crypto::Hash, std::vector<uint64_t>>>
+std::tuple<bool, std::unordered_map<crypto::Hash, std::vector<uint64_t>>>
 Nigel::getGlobalIndexesForRange(
     const uint64_t startHeight,
     const uint64_t endHeight) const
@@ -362,7 +363,7 @@ Nigel::getGlobalIndexesForRange(
     {
         try
         {
-            std::unordered_map<Crypto::Hash, std::vector<uint64_t>> result;
+            std::unordered_map<crypto::Hash, std::vector<uint64_t>> result;
 
             json j = json::parse(res->body);
 
@@ -377,7 +378,7 @@ Nigel::getGlobalIndexesForRange(
 
             for (const auto index : indexes)
             {
-                result[index.at("key").get<Crypto::Hash>()] = index.at("value").get<std::vector<uint64_t>>();
+                result[index.at("key").get<crypto::Hash>()] = index.at("value").get<std::vector<uint64_t>>();
             }
 
             return {true, result};

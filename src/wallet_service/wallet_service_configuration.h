@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -11,7 +12,7 @@
 
 using nlohmann::json;
 
-namespace PaymentService
+namespace payment_service
 {
     struct WalletServiceConfiguration
     {
@@ -20,9 +21,9 @@ namespace PaymentService
             daemonAddress = "127.0.0.1";
             bindAddress = "127.0.0.1";
             logFile = "service.log";
-            daemonPort = CryptoNote::RPC_DEFAULT_PORT;
-            bindPort = CryptoNote::SERVICE_DEFAULT_PORT;
-            logLevel = Logging::INFO;
+            daemonPort = cryptonote::RPC_DEFAULT_PORT;
+            bindPort = cryptonote::SERVICE_DEFAULT_PORT;
+            logLevel = logging::INFO;
             legacySecurity = false;
             help = false;
             version = false;

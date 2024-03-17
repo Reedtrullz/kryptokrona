@@ -1,20 +1,21 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #pragma once
 
 #include <list>
-#include "CryptoNoteCore/CryptoNoteBasic.h"
+#include "cryptonote_core/cryptonote_basic.h"
 
 // ISerializer-based serialization
 #include "serialization/iserializer.h"
 #include "serialization/serialization_overloads.h"
-#include "CryptoNoteCore/CryptoNoteSerialization.h"
+#include "cryptonote_core/cryptonote_serialization.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
 #define BC_COMMANDS_POOL_BASE 2000
@@ -62,8 +63,8 @@ namespace CryptoNote
     /************************************************************************/
     struct NOTIFY_REQUEST_GET_OBJECTS_request
     {
-        std::vector<Crypto::Hash> txs;
-        std::vector<Crypto::Hash> blocks;
+        std::vector<crypto::Hash> txs;
+        std::vector<crypto::Hash> blocks;
 
         void serialize(ISerializer &s)
         {
@@ -82,7 +83,7 @@ namespace CryptoNote
     {
         std::vector<std::string> txs;
         std::vector<RawBlockLegacy> blocks;
-        std::vector<Crypto::Hash> missed_ids;
+        std::vector<crypto::Hash> missed_ids;
         uint32_t current_blockchain_height;
     };
 
@@ -98,7 +99,7 @@ namespace CryptoNote
 
         struct request
         {
-            std::vector<Crypto::Hash> block_ids; /*IDs of the first 10 blocks are sequential, next goes with pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
+            std::vector<crypto::Hash> block_ids; /*IDs of the first 10 blocks are sequential, next goes with pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
 
             void serialize(ISerializer &s)
             {
@@ -111,7 +112,7 @@ namespace CryptoNote
     {
         uint32_t start_height;
         uint32_t total_height;
-        std::vector<Crypto::Hash> m_block_ids;
+        std::vector<crypto::Hash> m_block_ids;
 
         void serialize(ISerializer &s)
         {
@@ -132,7 +133,7 @@ namespace CryptoNote
     /************************************************************************/
     struct NOTIFY_REQUEST_TX_POOL_request
     {
-        std::vector<Crypto::Hash> txs;
+        std::vector<crypto::Hash> txs;
 
         void serialize(ISerializer &s)
         {
@@ -164,9 +165,9 @@ namespace CryptoNote
 
     struct NOTIFY_MISSING_TXS_request
     {
-        Crypto::Hash blockHash;
+        crypto::Hash blockHash;
         uint32_t current_blockchain_height;
-        std::vector<Crypto::Hash> missing_txs;
+        std::vector<crypto::Hash> missing_txs;
     };
 
     struct NOTIFY_MISSING_TXS

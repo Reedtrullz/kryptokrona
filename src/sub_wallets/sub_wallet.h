@@ -1,4 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -6,7 +7,7 @@
 
 #include <crypto/crypto.h>
 
-#include "CryptoTypes.h"
+#include "crypto_types.h"
 
 #include <errors/errors.h>
 
@@ -16,7 +17,7 @@
 
 #include <unordered_set>
 
-#include "WalletTypes.h"
+#include "wallet_types.h"
 
 class SubWallet
 {
@@ -28,15 +29,15 @@ public:
     SubWallet() = default;
 
     SubWallet(
-        const Crypto::PublicKey publicSpendKey,
+        const crypto::PublicKey publicSpendKey,
         const std::string address,
         const uint64_t scanHeight,
         const uint64_t scanTimestamp,
         const bool isPrimaryAddress);
 
     SubWallet(
-        const Crypto::PublicKey publicSpendKey,
-        const Crypto::SecretKey privateSpendKey,
+        const crypto::PublicKey publicSpendKey,
+        const crypto::SecretKey privateSpendKey,
         const std::string address,
         const uint64_t scanHeight,
         const uint64_t scanTimestamp,
@@ -54,14 +55,14 @@ public:
 
     /* Generates a key image from the derivation, and stores the
        transaction input along with the key image filled in */
-    Crypto::KeyImage getTxInputKeyImage(
-        const Crypto::KeyDerivation derivation,
+    crypto::KeyImage getTxInputKeyImage(
+        const crypto::KeyDerivation derivation,
         const size_t outputIndex,
         const bool isViewWallet) const;
 
     /* Store a transaction input */
     void storeTransactionInput(
-        const WalletTypes::TransactionInput input,
+        const wallet_types::TransactionInput input,
         const bool isViewWallet);
 
     std::tuple<uint64_t, uint64_t> getBalance(
@@ -73,24 +74,24 @@ public:
 
     std::string address() const;
 
-    bool hasKeyImage(const Crypto::KeyImage keyImage) const;
+    bool hasKeyImage(const crypto::KeyImage keyImage) const;
 
-    Crypto::PublicKey publicSpendKey() const;
+    crypto::PublicKey publicSpendKey() const;
 
-    Crypto::SecretKey privateSpendKey() const;
+    crypto::SecretKey privateSpendKey() const;
 
     void markInputAsSpent(
-        const Crypto::KeyImage keyImage,
+        const crypto::KeyImage keyImage,
         const uint64_t spendHeight);
 
-    void markInputAsLocked(const Crypto::KeyImage keyImage);
+    void markInputAsLocked(const crypto::KeyImage keyImage);
 
     void removeForkedInputs(const uint64_t forkHeight);
 
-    void removeCancelledTransactions(const std::unordered_set<Crypto::Hash> cancelledTransactions);
+    void removeCancelledTransactions(const std::unordered_set<crypto::Hash> cancelledTransactions);
 
     /* Gets inputs that are spendable at the given height */
-    std::vector<WalletTypes::TxInputAndOwner> getSpendableInputs(
+    std::vector<wallet_types::TxInputAndOwner> getSpendableInputs(
         const uint64_t height) const;
 
     uint64_t syncStartHeight() const;
@@ -98,7 +99,7 @@ public:
     uint64_t syncStartTimestamp() const;
 
     void storeUnconfirmedIncomingInput(
-        const WalletTypes::UnconfirmedInput input);
+        const wallet_types::UnconfirmedInput input);
 
     void convertSyncTimestampToHeight(
         const uint64_t timestamp,
@@ -111,25 +112,25 @@ public:
 private:
     /* A vector of the stored transaction input data, to be used for
        sending transactions later */
-    std::vector<WalletTypes::TransactionInput> m_unspentInputs;
+    std::vector<wallet_types::TransactionInput> m_unspentInputs;
 
     /* Inputs which have been used in a transaction, and are waiting to
        either be put into a block, or return to our wallet */
-    std::vector<WalletTypes::TransactionInput> m_lockedInputs;
+    std::vector<wallet_types::TransactionInput> m_lockedInputs;
 
     /* Inputs which have been spent in a transaction */
-    std::vector<WalletTypes::TransactionInput> m_spentInputs;
+    std::vector<wallet_types::TransactionInput> m_spentInputs;
 
     /* Inputs which have come in from a transaction we sent - either from
        change or from sending to ourself - we use this to display unlocked
        balance correctly */
-    std::vector<WalletTypes::UnconfirmedInput> m_unconfirmedIncomingAmounts;
+    std::vector<wallet_types::UnconfirmedInput> m_unconfirmedIncomingAmounts;
 
     /* This subwallet's public spend key */
-    Crypto::PublicKey m_publicSpendKey;
+    crypto::PublicKey m_publicSpendKey;
 
     /* The subwallet's private spend key */
-    Crypto::SecretKey m_privateSpendKey;
+    crypto::SecretKey m_privateSpendKey;
 
     /* The timestamp to begin syncing the wallet at
        (usually creation time or zero) */

@@ -15,8 +15,8 @@ include_directories(${CMAKE_SOURCE_DIR}/external/cryptopp)
 # can find the new file
 file(GLOB_RECURSE blockchain_explorer blockchain_explorer/*)
 file(GLOB_RECURSE common common/*)
-file(GLOB_RECURSE Crypto crypto/*)
-file(GLOB_RECURSE CryptoNoteCore CryptoNoteCore/* CryptoNoteConfig.h)
+file(GLOB_RECURSE crypto crypto/*)
+file(GLOB_RECURSE cryptonote_core cryptonote_core/* cryptonote_config.h)
 file(GLOB_RECURSE cryptonote_protocol cryptonote_protocol/*)
 file(GLOB_RECURSE crypto_test crypto_test/*)
 file(GLOB_RECURSE errors errors/*)
@@ -42,21 +42,21 @@ file(GLOB_RECURSE zedwallet zedwallet/*)
 file(GLOB_RECURSE zedwallet++ zedwallet++/*)
 
 if(MSVC)
-    file(GLOB_RECURSE syst syst/* platform/windows/sys/*)
+    file(GLOB_RECURSE syst syst/* platform/windows/syst/*)
 elseif(APPLE)
-    file(GLOB_RECURSE syst syst/* platform/osx/sys/* platform/posix/sys/*)
+    file(GLOB_RECURSE syst syst/* platform/osx/syst/* platform/posix/syst/*)
 else()
-    file(GLOB_RECURSE syst syst/* platform/linux/sys/* platform/posix/sys/*)
+    file(GLOB_RECURSE syst syst/* platform/linux/syst/* platform/posix/syst/*)
 endif()
 
 # Group the files together in IDEs
-source_group("" FILES $${common} ${Crypto} ${CryptoNoteCore} ${cryptonote_protocol} ${kryptokronad} ${json_rpc_server} ${http} ${logging} ${miner} ${mnemonics} ${Nigel} ${NodeRpcProxy} ${p2p} ${rpc} ${serialization} ${syst} ${transfers} ${wallet} ${wallet_api} ${wallet_backend} ${zedwallet} ${zedwallet++} ${crypto_test} ${errors} ${utilities} ${sub_wallets})
+source_group("" FILES $${common} ${crypto} ${cryptonote_core} ${cryptonote_protocol} ${kryptokronad} ${json_rpc_server} ${http} ${logging} ${miner} ${mnemonics} ${Nigel} ${NodeRpcProxy} ${p2p} ${rpc} ${serialization} ${syst} ${transfers} ${wallet} ${wallet_api} ${wallet_backend} ${zedwallet} ${zedwallet++} ${crypto_test} ${errors} ${utilities} ${sub_wallets})
 
 # Define a group of files as a library to link against
 add_library(blockchain_explorer STATIC ${blockchain_explorer})
 add_library(common STATIC ${common})
-add_library(Crypto STATIC ${Crypto})
-add_library(CryptoNoteCore STATIC ${CryptoNoteCore})
+add_library(crypto STATIC ${crypto})
+add_library(cryptonote_core STATIC ${cryptonote_core})
 add_library(errors STATIC ${errors})
 add_library(http STATIC ${http})
 add_library(json_rpc_server STATIC ${json_rpc_server})
@@ -77,22 +77,22 @@ add_library(wallet_service STATIC ${service})
 
 if(MSVC)
     set(DAEMON_SOURCES_OS
-            binary_info/daemon.rc
+        binary_info/daemon.rc
     )
     set(ZED_WALLET_SOURCES_OS
-            binary_info/zedwallet.rc
+        binary_info/zedwallet.rc
     )
     set(MINER_SOURCES_OS
-            binary_info/miner.rc
+        binary_info/miner.rc
     )
     set(PG_SOURCES_OS
-            binary_info/service.rc
+        binary_info/service.rc
     )
     set(CT_SOURCES_OS
-            binary_info/cryptotest.rc
+        binary_info/cryptotest.rc
     )
     set(WALLET_API_SOURCES_OS
-            binary_info/walletapi.rc
+        binary_info/walletapi.rc
     )
 endif()
 
@@ -116,32 +116,40 @@ add_library(__filesystem INTERFACE)
 
 # Windows works out of the box
 if(APPLE)
-    target_link_libraries(__filesystem INTERFACE /usr/local/opt/llvm/lib/libc++fs.a)
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+        # Apply rules specific to x64 architecture on macOS
+        target_link_libraries(__filesystem INTERFACE /usr/local/opt/llvm/lib/c++/libc++abi.a)
+    elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        # Apply rules specific to arm64 architecture on macOS (M1)
+        target_link_libraries(__filesystem INTERFACE /opt/homebrew/opt/llvm/lib/c++/libc++abi.a)
+    else()
+        message(FATAL_ERROR "Unsupported macOS architecture")
+    endif()
 elseif(UNIX)
     target_link_libraries(__filesystem INTERFACE stdc++fs)
 endif()
 
 if(MSVC)
-    target_link_libraries(kryptokronad syst CryptoNoteCore rocksdb ${Boost_LIBRARIES})
+    target_link_libraries(kryptokronad syst cryptonote_core rocksdb ${Boost_LIBRARIES})
 else()
-    target_link_libraries(kryptokronad syst CryptoNoteCore rocksdblib ${Boost_LIBRARIES})
+    target_link_libraries(kryptokronad syst cryptonote_core rocksdblib ${Boost_LIBRARIES})
 endif()
 
 # Add the dependencies we need
 target_link_libraries(common __filesystem)
-target_link_libraries(CryptoNoteCore common logging Crypto p2p rpc http serialization syst ${Boost_LIBRARIES})
-target_link_libraries(crypto_test Crypto common)
+target_link_libraries(cryptonote_core common logging crypto p2p rpc http serialization syst ${Boost_LIBRARIES})
+target_link_libraries(crypto_test crypto common)
 target_link_libraries(errors sub_wallets)
 target_link_libraries(logging common)
-target_link_libraries(miner CryptoNoteCore rpc syst http Crypto errors utilities)
+target_link_libraries(miner cryptonote_core rpc syst http crypto errors utilities)
 target_link_libraries(nigel errors)
-target_link_libraries(p2p CryptoNoteCore upnpc-static)
+target_link_libraries(p2p cryptonote_core upnpc-static)
 target_link_libraries(rpc p2p utilities)
 target_link_libraries(service json_rpc_server wallet mnemonics errors)
-target_link_libraries(sub_wallets utilities CryptoNoteCore)
-target_link_libraries(wallet node_rpc_proxy transfers CryptoNoteCore common ${Boost_LIBRARIES})
+target_link_libraries(sub_wallets utilities cryptonote_core)
+target_link_libraries(wallet node_rpc_proxy transfers cryptonote_core common ${Boost_LIBRARIES})
 target_link_libraries(wallet_api wallet_backend)
-target_link_libraries(wallet_backend mnemonics CryptoNoteCore nigel cryptopp-static __filesystem utilities sub_wallets)
+target_link_libraries(wallet_backend mnemonics cryptonote_core nigel cryptopp-static __filesystem utilities sub_wallets)
 target_link_libraries(wallet_service mnemonics)
 target_link_libraries(zedwallet mnemonics wallet errors utilities)
 target_link_libraries(zedwallet++ wallet_backend)

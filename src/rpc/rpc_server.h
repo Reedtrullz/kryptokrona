@@ -12,11 +12,11 @@
 #include <unordered_map>
 
 #include <logging/logger_ref.h>
-#include "common/Math.h"
+#include "common/math.h"
 #include "core_rpc_server_commands_definitions.h"
 #include "json_rpc.h"
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     class Core;
@@ -26,7 +26,7 @@ namespace CryptoNote
     class RpcServer : public HttpServer
     {
     public:
-        RpcServer(System::Dispatcher &dispatcher, std::shared_ptr<Logging::ILogger> log, Core &c, NodeServer &p2p, ICryptoNoteProtocolHandler &protocol);
+        RpcServer(syst::Dispatcher &dispatcher, std::shared_ptr<logging::ILogger> log, Core &c, NodeServer &p2p, ICryptoNoteProtocolHandler &protocol);
 
         typedef std::function<bool(RpcServer *, const HttpRequest &request, HttpResponse &response)> HandlerFunction;
         bool enableCors(const std::vector<std::string> domains);
@@ -34,7 +34,7 @@ namespace CryptoNote
         bool setFeeAmount(const uint32_t fee_amount);
         std::vector<std::string> getCorsDomains();
 
-        bool on_get_block_headers_range(const COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::request &req, COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::response &res, JsonRpc::JsonRpcError &error_resp);
+        bool on_get_block_headers_range(const COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::request &req, COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::response &res, json_rpc::JsonRpcError &error_resp);
         bool on_get_info(const COMMAND_RPC_GET_INFO::request &req, COMMAND_RPC_GET_INFO::response &res);
 
     private:
@@ -93,7 +93,7 @@ namespace CryptoNote
         bool on_get_block_header_by_hash(const COMMAND_RPC_GET_BLOCK_HEADER_BY_HASH::request &req, COMMAND_RPC_GET_BLOCK_HEADER_BY_HASH::response &res);
         bool on_get_block_header_by_height(const COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT::request &req, COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT::response &res);
 
-        void fill_block_header_response(const BlockTemplate &blk, bool orphan_status, uint32_t index, const Crypto::Hash &hash, block_header_response &responce);
+        void fill_block_header_response(const BlockTemplate &blk, bool orphan_status, uint32_t index, const crypto::Hash &hash, block_header_response &responce);
         RawBlockLegacy prepareRawBlockLegacy(BinaryArray &&blockBlob);
 
         bool f_on_blocks_list_json(const F_COMMAND_RPC_GET_BLOCKS_LIST::request &req, F_COMMAND_RPC_GET_BLOCKS_LIST::response &res);
@@ -102,7 +102,7 @@ namespace CryptoNote
         bool f_on_transactions_pool_json(const F_COMMAND_RPC_GET_POOL::request &req, F_COMMAND_RPC_GET_POOL::response &res);
         bool f_getMixin(const Transaction &transaction, uint64_t &mixin);
 
-        Logging::LoggerRef logger;
+        logging::LoggerRef logger;
         Core &m_core;
         NodeServer &m_p2p;
         ICryptoNoteProtocolHandler &m_protocol;

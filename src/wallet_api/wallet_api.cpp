@@ -1,10 +1,11 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #include <atomic>
 
-#include <common/SignalHandler.h>
+#include <common/signal_handler.h>
 
 #include <config/cli_header.h>
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
 {
     Config config = parseArguments(argc, argv);
 
-    std::cout << CryptoNote::getProjectCLIHeader() << std::endl;
+    std::cout << cryptonote::getProjectCLIHeader() << std::endl;
 
     std::thread apiThread;
 
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
     try
     {
         /* Trigger the shutdown signal if ctrl+c is used */
-        Tools::SignalHandler::install([&ctrl_c]
+        tools::SignalHandler::install([&ctrl_c]
                                       { ctrl_c = true; });
 
         /* Init the API */

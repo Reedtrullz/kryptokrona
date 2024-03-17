@@ -6,16 +6,16 @@
 #include <wallet_backend/wallet_backend.h>
 ////////////////////////////////////////
 
-#include <common/Base58.h>
-#include <common/FileSystemShim.h>
+#include <common/base58.h>
+#include <common/file_system_shim.h>
 
 #include <config/cryptonote_config.h>
 
 #include <crypto/random.h>
 
-#include <CryptoNoteCore/Account.h>
-#include <CryptoNoteCore/CryptoNoteTools.h>
-#include <CryptoNoteCore/CryptoNoteBasicImpl.h>
+#include <cryptonote_core/account.h>
+#include <cryptonote_core/cryptonote_tools.h>
+#include <cryptonote_core/cryptonote_basic_impl.h>
 
 #include <cryptopp/aes.h>
 #include <cryptopp/algparam.h>
@@ -32,7 +32,7 @@
 
 #include <iomanip>
 
-#include "JsonHelper.h"
+#include "json_helper.h"
 
 #include <mnemonics/mnemonics.h>
 
@@ -133,8 +133,8 @@ WalletBackend::~WalletBackend()
 WalletBackend::WalletBackend(
     const std::string filename,
     const std::string password,
-    const Crypto::SecretKey privateSpendKey,
-    const Crypto::SecretKey privateViewKey,
+    const crypto::SecretKey privateSpendKey,
+    const crypto::SecretKey privateViewKey,
     const uint64_t scanHeight,
     const bool newWallet,
     const std::string daemonHost,
@@ -145,7 +145,7 @@ WalletBackend::WalletBackend(
                                  m_daemon(std::make_shared<Nigel>(daemonHost, daemonPort))
 {
     /* Generate the address from the two private keys */
-    std::string address = Utilities::privateKeysToAddress(
+    std::string address = utilities::privateKeysToAddress(
         privateSpendKey, privateViewKey);
 
     m_eventHandler = std::make_shared<EventHandler>();
@@ -158,7 +158,7 @@ WalletBackend::WalletBackend(
 WalletBackend::WalletBackend(
     const std::string filename,
     const std::string password,
-    const Crypto::SecretKey privateViewKey,
+    const crypto::SecretKey privateViewKey,
     const std::string address,
     const uint64_t scanHeight,
     const std::string daemonHost,
@@ -198,19 +198,19 @@ std::tuple<Error, std::string> WalletBackend::createIntegratedAddress(
 
     uint64_t prefix;
 
-    CryptoNote::AccountPublicAddress addr;
+    cryptonote::AccountPublicAddress addr;
 
     /* Get the private + public key from the address */
-    CryptoNote::parseAccountAddressString(prefix, addr, address);
+    cryptonote::parseAccountAddressString(prefix, addr, address);
 
     /* Pack as a binary array */
-    CryptoNote::BinaryArray ba;
-    CryptoNote::toBinaryArray(addr, ba);
-    std::string keys = Common::asString(ba);
+    cryptonote::BinaryArray ba;
+    cryptonote::toBinaryArray(addr, ba);
+    std::string keys = common::asString(ba);
 
     /* Encode prefix + paymentID + keys as an address */
-    const std::string integratedAddress = Tools::Base58::encode_addr(
-        CryptoNote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX,
+    const std::string integratedAddress = tools::base58::encode_addr(
+        cryptonote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX,
         paymentID + keys);
 
     return {SUCCESS, integratedAddress};
@@ -240,10 +240,10 @@ std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::importWalletFro
         return {mnemonicError, nullptr};
     }
 
-    Crypto::SecretKey privateViewKey;
+    crypto::SecretKey privateViewKey;
 
     /* Derive the private view key from the private spend key */
-    CryptoNote::AccountBase::generateViewFromSpend(
+    cryptonote::AccountBase::generateViewFromSpend(
         privateSpendKey, privateViewKey);
 
     /* Just defining here so it's more obvious what we're doing in the
@@ -265,8 +265,8 @@ std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::importWalletFro
 /* Imports a wallet from a private spend key and a view key. Returns
    the wallet class, or an error. */
 std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::importWalletFromKeys(
-    const Crypto::SecretKey privateSpendKey,
-    const Crypto::SecretKey privateViewKey,
+    const crypto::SecretKey privateSpendKey,
+    const crypto::SecretKey privateViewKey,
     const std::string filename,
     const std::string password,
     const uint64_t scanHeight,
@@ -298,7 +298,7 @@ std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::importWalletFro
 /* Imports a view wallet from a private view key and an address.
    Returns the wallet class, or an error. */
 std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::importViewWallet(
-    const Crypto::SecretKey privateViewKey,
+    const crypto::SecretKey privateViewKey,
     const std::string address,
     const std::string filename,
     const std::string password,
@@ -337,15 +337,15 @@ std::tuple<Error, std::shared_ptr<WalletBackend>> WalletBackend::createWallet(
         return {error, nullptr};
     }
 
-    CryptoNote::KeyPair spendKey;
-    Crypto::SecretKey privateViewKey;
-    Crypto::PublicKey publicViewKey;
+    cryptonote::KeyPair spendKey;
+    crypto::SecretKey privateViewKey;
+    crypto::PublicKey publicViewKey;
 
     /* Generate a spend key */
-    Crypto::generate_keys(spendKey.publicKey, spendKey.secretKey);
+    crypto::generate_keys(spendKey.publicKey, spendKey.secretKey);
 
     /* Derive the view key from the spend key */
-    CryptoNote::AccountBase::generateViewFromSpend(
+    cryptonote::AccountBase::generateViewFromSpend(
         spendKey.secretKey, privateViewKey, publicViewKey);
 
     /* Just defining here so it's more obvious what we're doing in the
@@ -559,7 +559,7 @@ Error WalletBackend::unsafeSave() const
     byte salt[16];
 
     /* Generate 16 random bytes for the salt */
-    Random::randomBytes(16, salt);
+    rnd::randomBytes(16, salt);
 
     /* Using SHA256 as the algorithm */
     CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> pbkdf2;
@@ -620,7 +620,7 @@ std::tuple<Error, uint64_t, uint64_t> WalletBackend::getBalance(
     const bool takeFromAll = false;
 
     const auto [unlockedBalance, lockedBalance] = m_subWallets->getBalance(
-        Utilities::addressesToSpendKeys({address}), takeFromAll,
+        utilities::addressesToSpendKeys({address}), takeFromAll,
         m_daemon->networkBlockCount());
 
     return {SUCCESS, unlockedBalance, lockedBalance};
@@ -645,16 +645,16 @@ uint64_t WalletBackend::getTotalUnlockedBalance() const
 
 /* This is simply a wrapper for Transfer::sendTransactionBasic - we need to
    pass in the daemon and subwallets instance */
-std::tuple<Error, Crypto::Hash> WalletBackend::sendTransactionBasic(
+std::tuple<Error, crypto::Hash> WalletBackend::sendTransactionBasic(
     const std::string destination,
     const uint64_t amount,
     const std::string paymentID)
 {
-    return SendTransaction::sendTransactionBasic(
+    return send_transaction::sendTransactionBasic(
         destination, amount, paymentID, m_daemon, m_subWallets);
 }
 
-std::tuple<Error, Crypto::Hash> WalletBackend::sendTransactionAdvanced(
+std::tuple<Error, crypto::Hash> WalletBackend::sendTransactionAdvanced(
     const std::vector<std::pair<std::string, uint64_t>> destinations,
     const uint64_t mixin,
     const uint64_t fee,
@@ -663,22 +663,22 @@ std::tuple<Error, Crypto::Hash> WalletBackend::sendTransactionAdvanced(
     const std::string changeAddress,
     const uint64_t unlockTime)
 {
-    return SendTransaction::sendTransactionAdvanced(
+    return send_transaction::sendTransactionAdvanced(
         destinations, mixin, fee, paymentID, subWalletsToTakeFrom,
         changeAddress, m_daemon, m_subWallets, unlockTime);
 }
 
-std::tuple<Error, Crypto::Hash> WalletBackend::sendFusionTransactionBasic()
+std::tuple<Error, crypto::Hash> WalletBackend::sendFusionTransactionBasic()
 {
-    return SendTransaction::sendFusionTransactionBasic(m_daemon, m_subWallets);
+    return send_transaction::sendFusionTransactionBasic(m_daemon, m_subWallets);
 }
 
-std::tuple<Error, Crypto::Hash> WalletBackend::sendFusionTransactionAdvanced(
+std::tuple<Error, crypto::Hash> WalletBackend::sendFusionTransactionAdvanced(
     const uint64_t mixin,
     const std::vector<std::string> subWalletsToTakeFrom,
     const std::string destination)
 {
-    return SendTransaction::sendFusionTransactionAdvanced(
+    return send_transaction::sendFusionTransactionAdvanced(
         mixin, subWalletsToTakeFrom, destination, m_daemon, m_subWallets);
 }
 
@@ -693,7 +693,7 @@ void WalletBackend::reset(uint64_t scanHeight, uint64_t timestamp)
                transaction in block 9, we can't rely on timestamps to reset accurately. */
             if (timestamp != 0)
             {
-                scanHeight = Utilities::timestampToScanHeight(timestamp);
+                scanHeight = utilities::timestampToScanHeight(timestamp);
                 timestamp = 0;
             }
 
@@ -711,7 +711,7 @@ void WalletBackend::reset(uint64_t scanHeight, uint64_t timestamp)
         });
 }
 
-std::tuple<Error, std::string, Crypto::SecretKey> WalletBackend::addSubWallet()
+std::tuple<Error, std::string, crypto::SecretKey> WalletBackend::addSubWallet()
 {
     return m_syncRAIIWrapper->pauseSynchronizerToRunFunction([this]()
                                                              {
@@ -720,7 +720,7 @@ std::tuple<Error, std::string, Crypto::SecretKey> WalletBackend::addSubWallet()
 }
 
 std::tuple<Error, std::string> WalletBackend::importSubWallet(
-    const Crypto::SecretKey privateSpendKey,
+    const crypto::SecretKey privateSpendKey,
     const uint64_t scanHeight)
 {
     return m_syncRAIIWrapper->pauseSynchronizerToRunFunction([&, this]()
@@ -751,7 +751,7 @@ std::tuple<Error, std::string> WalletBackend::importSubWallet(
 }
 
 std::tuple<Error, std::string> WalletBackend::importViewSubWallet(
-    const Crypto::PublicKey publicSpendKey,
+    const crypto::PublicKey publicSpendKey,
     const uint64_t scanHeight)
 {
     return m_syncRAIIWrapper->pauseSynchronizerToRunFunction([&, this]()
@@ -845,23 +845,23 @@ Error WalletBackend::changePassword(const std::string newPassword)
     return save();
 }
 
-std::tuple<Error, Crypto::PublicKey, Crypto::SecretKey>
+std::tuple<Error, crypto::PublicKey, crypto::SecretKey>
 WalletBackend::getSpendKeys(const std::string &address) const
 {
-    const auto [publicSpendKey, publicViewKey] = Utilities::addressToKeys(address);
+    const auto [publicSpendKey, publicViewKey] = utilities::addressToKeys(address);
 
     const auto [success, privateSpendKey] = m_subWallets->getPrivateSpendKey(publicSpendKey);
 
     return {success, publicSpendKey, privateSpendKey};
 }
 
-Crypto::SecretKey WalletBackend::getPrivateViewKey() const
+crypto::SecretKey WalletBackend::getPrivateViewKey() const
 {
     return m_subWallets->getPrivateViewKey();
 }
 
 /* Returns the private spend key for the primary address, and the shared private view key */
-std::tuple<Crypto::SecretKey, Crypto::SecretKey> WalletBackend::getPrimaryAddressPrivateKeys() const
+std::tuple<crypto::SecretKey, crypto::SecretKey> WalletBackend::getPrimaryAddressPrivateKeys() const
 {
     return {m_subWallets->getPrimaryPrivateSpendKey(), m_subWallets->getPrivateViewKey()};
 }
@@ -882,11 +882,11 @@ std::tuple<Error, std::string> WalletBackend::getMnemonicSeedForAddress(
         return {error, std::string()};
     }
 
-    Crypto::SecretKey derivedPrivateViewKey;
+    crypto::SecretKey derivedPrivateViewKey;
 
     /* Derive the view key from the spend key, and check if it matches the
        actual view key */
-    CryptoNote::AccountBase::generateViewFromSpend(
+    cryptonote::AccountBase::generateViewFromSpend(
         privateSpendKey,
         derivedPrivateViewKey);
 
@@ -898,21 +898,21 @@ std::tuple<Error, std::string> WalletBackend::getMnemonicSeedForAddress(
     return {SUCCESS, Mnemonics::PrivateKeyToMnemonic(privateSpendKey)};
 }
 
-std::vector<WalletTypes::Transaction> WalletBackend::getTransactions() const
+std::vector<wallet_types::Transaction> WalletBackend::getTransactions() const
 {
     return m_subWallets->getTransactions();
 }
 
-std::vector<WalletTypes::Transaction> WalletBackend::getUnconfirmedTransactions() const
+std::vector<wallet_types::Transaction> WalletBackend::getUnconfirmedTransactions() const
 {
     return m_subWallets->getUnconfirmedTransactions();
 }
 
-WalletTypes::WalletStatus WalletBackend::getStatus() const
+wallet_types::WalletStatus WalletBackend::getStatus() const
 {
     const auto [walletBlockCount, localDaemonBlockCount, networkBlockCount] = getSyncStatus();
 
-    WalletTypes::WalletStatus status;
+    wallet_types::WalletStatus status;
 
     status.walletBlockCount = walletBlockCount;
     status.localDaemonBlockCount = localDaemonBlockCount;
@@ -926,10 +926,10 @@ WalletTypes::WalletStatus WalletBackend::getStatus() const
 
 /* Returns transactions in the range [startHeight, endHeight - 1] - so if
    we give 1, 100, it will return transactions from block 1 to block 99 */
-std::vector<WalletTypes::Transaction> WalletBackend::getTransactionsRange(
+std::vector<wallet_types::Transaction> WalletBackend::getTransactionsRange(
     const uint64_t startHeight, const uint64_t endHeight) const
 {
-    std::vector<WalletTypes::Transaction> result;
+    std::vector<wallet_types::Transaction> result;
 
     const auto transactions = getTransactions();
 
@@ -971,13 +971,13 @@ bool WalletBackend::daemonOnline() const
 }
 
 std::tuple<Error, std::string> WalletBackend::getAddress(
-    const Crypto::PublicKey spendKey) const
+    const crypto::PublicKey spendKey) const
 {
     return m_subWallets->getAddress(spendKey);
 }
 
-std::tuple<Error, Crypto::SecretKey> WalletBackend::getTxPrivateKey(
-    const Crypto::Hash txHash) const
+std::tuple<Error, crypto::SecretKey> WalletBackend::getTxPrivateKey(
+    const crypto::Hash txHash) const
 {
     const auto [success, key] = m_subWallets->getTxPrivateKey(txHash);
 

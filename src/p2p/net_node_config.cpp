@@ -1,23 +1,24 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #include "net_node_config.h"
 
-#include <common/Util.h>
-#include "common/StringTools.h"
+#include <common/util.h>
+#include "common/string_tools.h"
 #include <config/cryptonote_config.h>
 #include <crypto/random.h>
 
-namespace CryptoNote
+namespace cryptonote
 {
     namespace
     {
 
         bool parsePeerFromString(NetworkAddress &pe, const std::string &node_addr)
         {
-            return Common::parseIpAddressAndPort(pe.ip, pe.port, node_addr);
+            return common::parseIpAddressAndPort(pe.ip, pe.port, node_addr);
         }
 
         bool parsePeersAndAddToNetworkContainer(const std::vector<std::string> peerList, std::vector<NetworkAddress> &container)
@@ -39,7 +40,7 @@ namespace CryptoNote
             for (const std::string &peer : peerList)
             {
                 PeerlistEntry peerListEntry = PeerlistEntry();
-                peerListEntry.id = Random::randomValue<uint64_t>();
+                peerListEntry.id = rnd::randomValue<uint64_t>();
                 if (!parsePeerFromString(peerListEntry.adr, peer))
                 {
                     return false;
@@ -58,7 +59,7 @@ namespace CryptoNote
         externalPort = 0;
         allowLocalIp = false;
         hideMyPort = false;
-        configFolder = Tools::getDefaultDataDirectory();
+        configFolder = tools::getDefaultDataDirectory();
         testnet = false;
     }
 
@@ -73,7 +74,7 @@ namespace CryptoNote
         allowLocalIp = localIp;
         hideMyPort = hidePort;
         configFolder = dataDir;
-        p2pStateFilename = CryptoNote::parameters::P2P_NET_DATA_FILENAME;
+        p2pStateFilename = cryptonote::parameters::P2P_NET_DATA_FILENAME;
 
         if (!addPeers.empty())
         {

@@ -1,19 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "http_parser.h"
 
@@ -30,33 +20,33 @@ namespace
         {
             if (stream.eof())
             {
-                throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::END_OF_STREAM));
+                throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::END_OF_STREAM));
             }
             else
             {
-                throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::STREAM_NOT_GOOD));
+                throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::STREAM_NOT_GOOD));
             }
         }
     }
 
 }
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     HttpResponse::HTTP_STATUS HttpParser::parseResponseStatusFromString(const std::string &status)
     {
         if (status == "200 OK" || status == "200 Ok")
-            return CryptoNote::HttpResponse::STATUS_200;
+            return cryptonote::HttpResponse::STATUS_200;
         else if (status == "404 Not Found")
-            return CryptoNote::HttpResponse::STATUS_404;
+            return cryptonote::HttpResponse::STATUS_404;
         else if (status == "500 Internal Server Error")
-            return CryptoNote::HttpResponse::STATUS_500;
+            return cryptonote::HttpResponse::STATUS_500;
         else
-            throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL),
+            throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL),
                                     "Unknown HTTP status code is given");
 
-        return CryptoNote::HttpResponse::STATUS_200; // unaccessible
+        return cryptonote::HttpResponse::STATUS_200; // unaccessible
     }
 
     void HttpParser::receiveRequest(std::istream &stream, HttpRequest &request)
@@ -151,7 +141,7 @@ namespace CryptoNote
             stream.get(c);
             if (c != '\n')
             {
-                throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
+                throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
             }
         }
     }
@@ -188,7 +178,7 @@ namespace CryptoNote
 
                 if (name.empty())
                 {
-                    throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::EMPTY_HEADER));
+                    throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::EMPTY_HEADER));
                 }
 
                 if (isName)
@@ -216,7 +206,7 @@ namespace CryptoNote
         stream.get(c);
         if (c != '\n')
         {
-            throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
+            throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
         }
 
         std::transform(name.begin(), name.end(), name.begin(), ::tolower);
@@ -227,7 +217,7 @@ namespace CryptoNote
             stream.get(c).get(c);
             if (c != '\n')
             {
-                throw std::system_error(make_error_code(CryptoNote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
+                throw std::system_error(make_error_code(cryptonote::error::HttpParserErrorCodes::UNEXPECTED_SYMBOL));
             }
 
             return false; // no more headers

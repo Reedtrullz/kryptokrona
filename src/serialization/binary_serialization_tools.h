@@ -1,38 +1,28 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
-#include <CryptoNote.h>
+#include <cryptonote.h>
 #include "binary_input_stream_serializer.h"
 #include "binary_output_stream_serializer.h"
-#include "common/MemoryInputStream.h"
-#include "common/StdInputStream.h"
-#include "common/StdOutputStream.h"
-#include "common/VectorOutputStream.h"
+#include "common/memory_input_stream.h"
+#include "common/std_input_stream.h"
+#include "common/std_output_stream.h"
+#include "common/vector_output_stream.h"
 
 #include <fstream>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     template <typename T>
     BinaryArray storeToBinary(const T &obj)
     {
         BinaryArray result;
-        Common::VectorOutputStream stream(result);
+        common::VectorOutputStream stream(result);
         BinaryOutputStreamSerializer ba(stream);
         serialize(const_cast<T &>(obj), ba);
         return result;
@@ -41,7 +31,7 @@ namespace CryptoNote
     template <typename T>
     void loadFromBinary(T &obj, const BinaryArray &blob)
     {
-        Common::MemoryInputStream stream(blob.data(), blob.size());
+        common::MemoryInputStream stream(blob.data(), blob.size());
         BinaryInputStreamSerializer ba(stream);
         serialize(obj, ba);
     }
@@ -58,9 +48,9 @@ namespace CryptoNote
                 return false;
             }
 
-            Common::StdOutputStream stream(dataFile);
+            common::StdOutputStream stream(dataFile);
             BinaryOutputStreamSerializer out(stream);
-            CryptoNote::serialize(const_cast<T &>(obj), out);
+            cryptonote::serialize(const_cast<T &>(obj), out);
 
             if (dataFile.fail())
             {
@@ -89,7 +79,7 @@ namespace CryptoNote
                 return false;
             }
 
-            Common::StdInputStream stream(dataFile);
+            common::StdInputStream stream(dataFile);
             BinaryInputStreamSerializer in(stream);
             serialize(obj, in);
             return !dataFile.fail();

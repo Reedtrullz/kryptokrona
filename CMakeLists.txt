@@ -14,13 +14,20 @@ project(Kryptokrona)
 enable_language(C)
 enable_language(CXX)
 
+option(TEST_NET "Compile a testnet version" OFF)
+
+if(TEST_NET)
+    message(STATUS "TEST_NET: ON")
+    add_definitions(-DUSE_TESTNET)
+endif()
+
 # Assert our compiler is good
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 7.0 or higher
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
         message(FATAL_ERROR "GCC/G++ 11.0 or greater is required to compile. Please check the README.md for detailed compilation instructions.")
     endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Clang 6.0 or higher
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6)
         message(FATAL_ERROR "Clang 6.0 or greater is required to compile. Please check the README.md for detailed compilation instructions.")
@@ -143,7 +150,7 @@ include_directories(include "${CMAKE_CURRENT_BINARY_DIR}/version" src external)
 
 # # Platform specific code base information is applied here
 if(MSVC)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/windows)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
     add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10485760")
 
@@ -155,12 +162,12 @@ if(MSVC)
 elseif(APPLE)
     include_directories(SYSTEM /usr/include/malloc)
     enable_language(ASM)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/osx)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/posix)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/osx)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/posix)
 
 else()
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/linux)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/posix)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/linux)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/posix)
 endif()
 
 if(NOT MSVC)
@@ -208,14 +215,14 @@ if(NOT MSVC)
     if(APPLE)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
             # Need to build against libc++ instead of libstc++ on apple
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++ -I/usr/local/opt/llvm/include/c++/v1 -nodefaultlibs -lc++ -lc++abi -lm -lc -lgcc -lgcc_eh")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++ -I/opt/homebrew/opt/llvm/include/c++/v1 -nodefaultlibs -lc++abi -lm -lc -lgcc -lgcc_eh")
 
             # Need these flags so gcc OSX works on the cryptopp ASM - https://groups.google.com/forum/#!topic/cryptopp-users/po8yO-vYaac
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCRYPTOPP_CLANG_INTEGRATED_ASSEMBLER=1")
 
         elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
             # Need to link against the llvm libc++ library, default is too old for std::filesystem
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I/usr/local/opt/llvm/include/c++/v1")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I/opt/homebrew/opt/llvm/include/c++/v1 -L/opt/homebrew/opt/llvm/lib/c++")
         endif()
     endif()
 

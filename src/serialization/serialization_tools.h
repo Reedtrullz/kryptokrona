@@ -1,33 +1,23 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
 #include <list>
 #include <vector>
-#include <common/MemoryInputStream.h>
-#include <common/StringOutputStream.h>
+#include <common/memory_input_stream.h>
+#include <common/string_output_stream.h>
 #include "json_input_stream_serializer.h"
 #include "json_output_stream_serializer.h"
 #include "kv_binary_input_stream_serializer.h"
 #include "kv_binary_output_stream_serializer.h"
-#include <zedwallet/Types.h>
+#include <zedwallet/types.h>
 
-namespace Common
+namespace common
 {
 
     template <typename T>
@@ -45,11 +35,11 @@ namespace Common
 
 }
 
-namespace CryptoNote
+namespace cryptonote
 {
 
     template <typename T>
-    Common::JsonValue storeToJsonValue(const T &v)
+    common::JsonValue storeToJsonValue(const T &v)
     {
         JsonOutputStreamSerializer s;
         serialize(const_cast<T &>(v), s);
@@ -57,9 +47,9 @@ namespace CryptoNote
     }
 
     template <typename T>
-    Common::JsonValue storeContainerToJsonValue(const T &cont)
+    common::JsonValue storeContainerToJsonValue(const T &cont)
     {
-        Common::JsonValue js(Common::JsonValue::ARRAY);
+        common::JsonValue js(common::JsonValue::ARRAY);
         for (const auto &item : cont)
         {
             js.pushBack(item);
@@ -68,9 +58,9 @@ namespace CryptoNote
     }
 
     template <>
-    inline Common::JsonValue storeContainerToJsonValue(const std::vector<AddressBookEntry> &cont)
+    inline common::JsonValue storeContainerToJsonValue(const std::vector<AddressBookEntry> &cont)
     {
-        Common::JsonValue js(Common::JsonValue::ARRAY);
+        common::JsonValue js(common::JsonValue::ARRAY);
         for (const auto &item : cont)
         {
             js.pushBack(storeToJsonValue(item));
@@ -79,32 +69,32 @@ namespace CryptoNote
     }
 
     template <typename T>
-    Common::JsonValue storeToJsonValue(const std::vector<T> &v) { return storeContainerToJsonValue(v); }
+    common::JsonValue storeToJsonValue(const std::vector<T> &v) { return storeContainerToJsonValue(v); }
 
     template <typename T>
-    Common::JsonValue storeToJsonValue(const std::list<T> &v) { return storeContainerToJsonValue(v); }
+    common::JsonValue storeToJsonValue(const std::list<T> &v) { return storeContainerToJsonValue(v); }
 
     template <>
-    inline Common::JsonValue storeToJsonValue(const std::string &v) { return Common::JsonValue(v); }
+    inline common::JsonValue storeToJsonValue(const std::string &v) { return common::JsonValue(v); }
 
     template <typename T>
-    void loadFromJsonValue(T &v, const Common::JsonValue &js)
+    void loadFromJsonValue(T &v, const common::JsonValue &js)
     {
         JsonInputValueSerializer s(js);
         serialize(v, s);
     }
 
     template <typename T>
-    void loadFromJsonValue(std::vector<T> &v, const Common::JsonValue &js)
+    void loadFromJsonValue(std::vector<T> &v, const common::JsonValue &js)
     {
         for (uint64_t i = 0; i < js.size(); ++i)
         {
-            v.push_back(Common::getValueAs<T>(js[i]));
+            v.push_back(common::getValueAs<T>(js[i]));
         }
     }
 
     template <>
-    inline void loadFromJsonValue(AddressBook &v, const Common::JsonValue &js)
+    inline void loadFromJsonValue(AddressBook &v, const common::JsonValue &js)
     {
         for (uint64_t i = 0; i < js.size(); ++i)
         {
@@ -115,11 +105,11 @@ namespace CryptoNote
     }
 
     template <typename T>
-    void loadFromJsonValue(std::list<T> &v, const Common::JsonValue &js)
+    void loadFromJsonValue(std::list<T> &v, const common::JsonValue &js)
     {
         for (uint64_t i = 0; i < js.size(); ++i)
         {
-            v.push_back(Common::getValueAs<T>(js[i]));
+            v.push_back(common::getValueAs<T>(js[i]));
         }
     }
 
@@ -138,7 +128,7 @@ namespace CryptoNote
             {
                 return true;
             }
-            auto js = Common::JsonValue::fromString(buf);
+            auto js = common::JsonValue::fromString(buf);
             loadFromJsonValue(v, js);
         }
         catch (std::exception &)
@@ -155,7 +145,7 @@ namespace CryptoNote
         serialize(const_cast<T &>(v), s);
 
         std::string result;
-        Common::StringOutputStream stream(result);
+        common::StringOutputStream stream(result);
         s.dump(stream);
         return result;
     }
@@ -165,7 +155,7 @@ namespace CryptoNote
     {
         try
         {
-            Common::MemoryInputStream stream(buf.data(), buf.size());
+            common::MemoryInputStream stream(buf.data(), buf.size());
             KVBinaryInputStreamSerializer s(stream);
             serialize(v, s);
             return true;

@@ -1,29 +1,19 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Please see the included LICENSE file for more information.
 
 #include "serialization/serialization_overloads.h"
 
 #include <stdexcept>
 #include <limits>
 
-namespace CryptoNote
+namespace cryptonote
 {
 
-    void serializeBlockHeight(ISerializer &s, uint32_t &blockHeight, Common::StringView name)
+    void serializeBlockHeight(ISerializer &s, uint32_t &blockHeight, common::StringView name)
     {
         if (s.type() == ISerializer::INPUT)
         {
@@ -49,9 +39,9 @@ namespace CryptoNote
         }
     }
 
-    void serializeGlobalOutputIndex(ISerializer &s, uint32_t &globalOutputIndex, Common::StringView name)
+    void serializeGlobalOutputIndex(ISerializer &s, uint32_t &globalOutputIndex, common::StringView name)
     {
         serializeBlockHeight(s, globalOutputIndex, name);
     }
 
-} // namespace CryptoNote
+} // namespace cryptonote

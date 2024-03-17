@@ -1,10 +1,11 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2019, The Kryptokrona Developers
 //
 // Please see the included LICENSE file for more information.
 
 #pragma once
 
-#include <common/ConsoleTools.h>
+#include <common/console_tools.h>
 
 #include <iomanip>
 
@@ -18,13 +19,13 @@ class ColouredMsg
 public:
     ColouredMsg(
         const T msg,
-        const Common::Console::Color colour) : msg(msg),
+        const common::console::Color colour) : msg(msg),
                                                colour(colour) {}
 
     ColouredMsg(
         const T msg,
         const int padding,
-        const Common::Console::Color colour) : msg(msg),
+        const common::console::Color colour) : msg(msg),
                                                colour(colour),
                                                padding(padding),
                                                pad(true) {}
@@ -43,7 +44,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const ColouredMsg &m)
     {
-        Common::Console::setTextColor(m.colour);
+        common::console::setTextColor(m.colour);
 
         if (m.pad)
         {
@@ -54,7 +55,7 @@ public:
             os << m.msg;
         }
 
-        Common::Console::setTextColor(Common::Console::Color::Default);
+        common::console::setTextColor(common::console::Color::Default);
         return os;
     }
 
@@ -63,7 +64,7 @@ protected:
     T msg;
 
     /* The colour to use */
-    const Common::Console::Color colour;
+    const common::console::Color colour;
 
     /* The amount to pad the message to */
     const int padding = 0;
@@ -77,10 +78,10 @@ class SuccessMsg : public ColouredMsg<T>
 {
 public:
     explicit SuccessMsg(T msg)
-        : ColouredMsg<T>(msg, Common::Console::Color::Green) {}
+        : ColouredMsg<T>(msg, common::console::Color::Green) {}
 
     explicit SuccessMsg(T msg, int padding)
-        : ColouredMsg<T>(msg, padding, Common::Console::Color::Green) {}
+        : ColouredMsg<T>(msg, padding, common::console::Color::Green) {}
 };
 
 template <typename T>
@@ -88,10 +89,10 @@ class InformationMsg : public ColouredMsg<T>
 {
 public:
     explicit InformationMsg(T msg)
-        : ColouredMsg<T>(msg, Common::Console::Color::BrightYellow) {}
+        : ColouredMsg<T>(msg, common::console::Color::BrightYellow) {}
 
     explicit InformationMsg(T msg, int padding)
-        : ColouredMsg<T>(msg, padding, Common::Console::Color::BrightYellow) {}
+        : ColouredMsg<T>(msg, padding, common::console::Color::BrightYellow) {}
 };
 
 template <typename T>
@@ -99,8 +100,8 @@ class WarningMsg : public ColouredMsg<T>
 {
 public:
     explicit WarningMsg(T msg)
-        : ColouredMsg<T>(msg, Common::Console::Color::BrightRed) {}
+        : ColouredMsg<T>(msg, common::console::Color::BrightRed) {}
 
     explicit WarningMsg(T msg, int padding)
-        : ColouredMsg<T>(msg, padding, Common::Console::Color::BrightRed) {}
+        : ColouredMsg<T>(msg, padding, common::console::Color::BrightRed) {}
 };
